@@ -10,8 +10,9 @@
     "voxel"
   ],
   "dependencies": {
+    "ws": "~0.4.31",
+    "ever": "0.0.3"
   },
-  "peerDependencies": {
-  },
+  "peerDependencies": {},
   "license": "MIT"
 }
