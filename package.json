@@ -10,9 +10,10 @@
     "voxel"
   ],
   "dependencies": {
-    "ws": "~0.4.31",
     "ever": "0.0.3",
-    "zlib-browserify": "0.0.3"
+    "minecraft-protocol": "git://github.com/deathcap/node-minecraft-protocol.git#2257c049eb49564ee981dd4c5312286a0befeb65",
+    "zlib-browserify": "0.0.3",
+    "websocket-stream": "~0.4.0"
   },
   "peerDependencies": {},
   "license": "MIT"
