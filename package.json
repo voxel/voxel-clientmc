@@ -11,7 +11,8 @@
   ],
   "dependencies": {
     "ws": "~0.4.31",
-    "ever": "0.0.3"
+    "ever": "0.0.3",
+    "zlib-browserify": "0.0.3"
   },
   "peerDependencies": {},
   "license": "MIT"

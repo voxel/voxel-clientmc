@@ -1,5 +1,6 @@
 WebSocket = require 'ws'
 ever = require 'ever'
+zlib = require 'zlib-browserify'
 
 module.exports = (game, opts) ->
   return new ClientMC(game, opts)
@@ -22,7 +23,11 @@ class ClientMC
       [name, payload] = packet
 
       if name == 'map_chunk_bulk'
-        console.log 'map_chunk_bulk',payload.data.compressedChunkData.length
+        compressed = payload.data.compressedChunkData
+        console.log 'map_chunk_bulk',compressed.length
+
+        zlib.inflate compressed, (err, result) ->
+          console.log '  decomp', result.length
 
   disable: () ->
     #@ws.close()
