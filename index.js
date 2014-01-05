@@ -39,7 +39,19 @@
           compressed = payload.data.compressedChunkData;
           console.log('map_chunk_bulk', compressed.length);
           return zlib.inflate(compressed, function(err, result) {
-            return console.log('  decomp', result.length);
+            var at, chunksData;
+            console.log('  decomp', result.length);
+            console.log(result);
+            chunksData = new Uint8Array(result);
+            at = 0;
+            this.typeArray = chunksData.subarray(at, at += 16 * 16 * 16 * 1);
+            this.metaArray = chunksData.subarray(at, at += 16 * 16 * 16 / 2);
+            this.lightArray = chunksData.subarray(at, at += 16 * 16 * 16 / 2);
+            this.skyArray = chunksData.subarray(at, at += 16 * 16 * 16 / 2);
+            this.addArray = chunksData.subarray(at, at += 16 * 16 * 16 / 2);
+            this.biomeArray = chunksData.subarray(at, at += 256);
+            window.result = result;
+            return window.x = this;
           });
         }
       });
