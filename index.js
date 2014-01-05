@@ -36,22 +36,37 @@
         packet = JSON.parse(event.data);
         name = packet[0], payload = packet[1];
         if (name === 'map_chunk_bulk') {
+          console.log(payload);
           compressed = payload.data.compressedChunkData;
           console.log('map_chunk_bulk', compressed.length);
           return zlib.inflate(compressed, function(err, result) {
-            var at, chunksData;
+            var addArray, at, biomeArray, chunksData, groundUpContinuous, lightArray, maxLength, metaArray, miniChunks, skyArray, skyLightSent, typeArray;
             console.log('  decomp', result.length);
             console.log(result);
             chunksData = new Uint8Array(result);
             at = 0;
-            this.typeArray = chunksData.subarray(at, at += 16 * 16 * 16 * 1);
-            this.metaArray = chunksData.subarray(at, at += 16 * 16 * 16 / 2);
-            this.lightArray = chunksData.subarray(at, at += 16 * 16 * 16 / 2);
-            this.skyArray = chunksData.subarray(at, at += 16 * 16 * 16 / 2);
-            this.addArray = chunksData.subarray(at, at += 16 * 16 * 16 / 2);
-            this.biomeArray = chunksData.subarray(at, at += 256);
+            miniChunks = [];
+            maxLength = result.length;
+            skyLightSent = payload.skyLightSent;
+            groundUpContinuous = true;
+            while (at < maxLength) {
+              typeArray = chunksData.subarray(at, at += 16 * 16 * 16 * 1);
+              metaArray = chunksData.subarray(at, at += 16 * 16 * 16 / 2);
+              lightArray = chunksData.subarray(at, at += 16 * 16 * 16 / 2);
+              if (skyLightSent) {
+                skyArray = chunksData.subarray(at, at += 16 * 16 * 16 / 2);
+              }
+              addArray = chunksData.subarray(at, at += 16 * 16 * 16 / 2);
+              if (groundUpContinuous) {
+                biomeArray = chunksData.subarray(at, at += 256);
+              }
+              miniChunks.push({
+                types: typeArray
+              });
+            }
             window.result = result;
-            return window.x = this;
+            window.x = this;
+            debugger;
           });
         }
       });
