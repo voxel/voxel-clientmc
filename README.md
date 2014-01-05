@@ -1,0 +1,6 @@
+# voxel-clientmc
+
+## License
+
+MIT
+
