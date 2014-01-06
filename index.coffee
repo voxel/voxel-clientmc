@@ -75,7 +75,7 @@ class ClientMC
 
     @game.voxels.on 'missingChunk', @missingChunk.bind(this)
 
-    @columns = {}  # [chunkX,chunkZ][chunkY][block XYZ]
+    @voxelChunks = {}
 
     @ws.on 'error', (err) ->
       console.log 'WebSocket error', err
@@ -124,48 +124,61 @@ class ClientMC
 
 
   addColumn: (args) ->
-    console.log 'add column', args.x, args.z
+    chunkX = args.x
+    chunkZ = args.z
+    console.log 'add column', chunkX, chunkZ
 
     column = []
 
     offset = 0
     size = 4096
-    for y in [0..16]
-      if args.bitMap & (1 << y)
-        column[y] = args.data.slice(offset, offset + size)
+    for chunkY in [0..16]
+      if args.bitMap & (1 << chunkY)
+        miniChunk = args.data.slice(offset, offset + size)
         offset += size
+
+        # convert MC's chunks to voxel-engine's
+        # TODO: speed this up somehow
+        for dy in [0..16]
+          for dz in [0..16]
+            for dx in [0..16]
+
+              # MC uses XZY ordering, 16x16x16 mini-chunks
+              blockType = miniChunk[dx + dz*16 + dy*16*16]
+
+              x = chunkX*16 + dx
+              y = chunkY*16 + dy
+              z = chunkZ*16 + dz
+
+              # voxel-engine uses XYZ, (by default) 32x32x32
+              [vchunkX, vchunkY, vchunkZ] = @game.voxels.chunkAtCoordinates(x, y, z) # computes coords
+              #vchunkX = x >> 5
+              #vchunkY = y >> 5
+              #vchunkZ = z >> 5
+
+              vchunkKey = [vchunkX, vchunkY, vchunkZ].join('|')
+              @voxelChunks[vchunkKey] ?= new @game.arrayType(@game.chunkSize * @game.chunkSize * @game.chunkSize)
+
+              blockName = mcBlocks[blockType] ? mcBlocks.default
+              ourBlockType = @registry.getBlockID(blockName)
+              @voxelChunks[vchunkKey][dx + dy*@game.chunkSize + dz*@game.chunkSize*@game.chunkSize] = ourBlockType
+
       else
-        column[y] = null   # entirely air
+        # entirely air
 
     # TODO: metadata,light,sky,add,biome
 
 
-    @columns[args.x + '|' + args.z] = column # TODO: store better
-
-    window.c = @columns
 
   missingChunk: (pos) ->
-    console.log 'missingChunk',pos
-
-    chunkX = Math.floor(pos[0] * @game.chunkSize / 16)
-    chunkY = Math.floor(pos[1] * @game.chunkSize / 16)
-    chunkZ = Math.floor(pos[2] * @game.chunkSize / 16)
-    chunkXZ = chunkX + '|' + chunkZ
-
-    if not @columns[chunkXZ]?
-      #console.log 'no chunkXZ ',chunkXZ
-      return
-    voxels = @columns[chunkXZ][chunkY]
+    voxels = @voxelChunks[pos.join('|')]
     return if not voxels?
-    for i in [0...voxels.length]
-      if voxels[i] != 0
-        name = mcBlocks[voxels[i]] ? mcBlocks.default
-        voxels[i] = @registry.getBlockID(name)
 
     chunk = {
       position: pos
-      dims: [32, 32, 32]   # TODO
-      voxels: voxels}
+      dims: [@game.chunkSize, @game.chunkSize, @game.chunkSize]
+      voxels: voxels
+    }
 
     @game.showChunk(chunk)
-    console.log 'voxels',voxels
+

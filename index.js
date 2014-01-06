@@ -100,7 +100,7 @@
         type: Uint8Array
       });
       this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
-      this.columns = {};
+      this.voxelChunks = {};
       this.ws.on('error', function(err) {
         return console.log('WebSocket error', err);
       });
@@ -156,50 +156,70 @@
     };
 
     ClientMC.prototype.addColumn = function(args) {
-      var column, offset, size, y, _i;
-      console.log('add column', args.x, args.z);
+      var blockName, blockType, chunkX, chunkY, chunkZ, column, dx, dy, dz, miniChunk, offset, ourBlockType, size, vchunkKey, vchunkX, vchunkY, vchunkZ, x, y, z, _i, _results;
+      chunkX = args.x;
+      chunkZ = args.z;
+      console.log('add column', chunkX, chunkZ);
       column = [];
       offset = 0;
       size = 4096;
-      for (y = _i = 0; _i <= 16; y = ++_i) {
-        if (args.bitMap & (1 << y)) {
-          column[y] = args.data.slice(offset, offset + size);
+      _results = [];
+      for (chunkY = _i = 0; _i <= 16; chunkY = ++_i) {
+        if (args.bitMap & (1 << chunkY)) {
+          miniChunk = args.data.slice(offset, offset + size);
           offset += size;
+          _results.push((function() {
+            var _j, _results1;
+            _results1 = [];
+            for (dy = _j = 0; _j <= 16; dy = ++_j) {
+              _results1.push((function() {
+                var _k, _results2;
+                _results2 = [];
+                for (dz = _k = 0; _k <= 16; dz = ++_k) {
+                  _results2.push((function() {
+                    var _base, _l, _ref, _ref1, _results3;
+                    _results3 = [];
+                    for (dx = _l = 0; _l <= 16; dx = ++_l) {
+                      blockType = miniChunk[dx + dz * 16 + dy * 16 * 16];
+                      x = chunkX * 16 + dx;
+                      y = chunkY * 16 + dy;
+                      z = chunkZ * 16 + dz;
+                      _ref = this.game.voxels.chunkAtCoordinates(x, y, z), vchunkX = _ref[0], vchunkY = _ref[1], vchunkZ = _ref[2];
+                      vchunkKey = [vchunkX, vchunkY, vchunkZ].join('|');
+                      if ((_base = this.voxelChunks)[vchunkKey] == null) {
+                        _base[vchunkKey] = new this.game.arrayType(this.game.chunkSize * this.game.chunkSize * this.game.chunkSize);
+                      }
+                      blockName = (_ref1 = mcBlocks[blockType]) != null ? _ref1 : mcBlocks["default"];
+                      ourBlockType = this.registry.getBlockID(blockName);
+                      _results3.push(this.voxelChunks[vchunkKey][dx + dy * this.game.chunkSize + dz * this.game.chunkSize * this.game.chunkSize] = ourBlockType);
+                    }
+                    return _results3;
+                  }).call(this));
+                }
+                return _results2;
+              }).call(this));
+            }
+            return _results1;
+          }).call(this));
         } else {
-          column[y] = null;
+
         }
       }
-      this.columns[args.x + '|' + args.z] = column;
-      return window.c = this.columns;
+      return _results;
     };
 
     ClientMC.prototype.missingChunk = function(pos) {
-      var chunk, chunkX, chunkXZ, chunkY, chunkZ, i, name, voxels, _i, _ref, _ref1;
-      console.log('missingChunk', pos);
-      chunkX = Math.floor(pos[0] * this.game.chunkSize / 16);
-      chunkY = Math.floor(pos[1] * this.game.chunkSize / 16);
-      chunkZ = Math.floor(pos[2] * this.game.chunkSize / 16);
-      chunkXZ = chunkX + '|' + chunkZ;
-      if (this.columns[chunkXZ] == null) {
-        return;
-      }
-      voxels = this.columns[chunkXZ][chunkY];
+      var chunk, voxels;
+      voxels = this.voxelChunks[pos.join('|')];
       if (voxels == null) {
         return;
       }
-      for (i = _i = 0, _ref = voxels.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-        if (voxels[i] !== 0) {
-          name = (_ref1 = mcBlocks[voxels[i]]) != null ? _ref1 : mcBlocks["default"];
-          voxels[i] = this.registry.getBlockID(name);
-        }
-      }
       chunk = {
         position: pos,
-        dims: [32, 32, 32],
+        dims: [this.game.chunkSize, this.game.chunkSize, this.game.chunkSize],
         voxels: voxels
       };
-      this.game.showChunk(chunk);
-      return console.log('voxels', voxels);
+      return this.game.showChunk(chunk);
     };
 
     return ClientMC;
