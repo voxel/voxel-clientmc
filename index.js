@@ -94,7 +94,7 @@
         _ref.disable('voxel-land');
       }
       if ((_ref1 = this.game.plugins) != null) {
-        _ref1.get('voxel-player').moveTo(-289, 80, -340);
+        _ref1.get('voxel-player').moveTo(-255, 83, -319);
       }
       if ((_ref2 = this.game.plugins) != null) {
         _ref2.enable('voxel-fly');
@@ -131,14 +131,13 @@
           return;
         }
         return zlib.inflate(compressed, function(err, inflated) {
-          var i, meta, offset, size, _i, _len, _ref, _results;
+          var i, meta, offset, size, _i, _len, _ref;
           if (err) {
             return err;
           }
           console.log('  decomp', inflated.length);
           offset = meta = size = 0;
           _ref = payload.meta;
-          _results = [];
           for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
             meta = _ref[i];
             size = (8192 + (payload.skyLightSent ? 2048 : 0)) * onesInShort(meta.bitMap) + 2048 * onesInShort(meta.addBitMap) + 256;
@@ -151,15 +150,17 @@
               groundUp: true,
               data: inflated.slice(offset, offset + size)
             });
-            _results.push(offset += size);
+            offset += size;
           }
-          return _results;
+          if (offset !== inflated.length) {
+            return console.log("incomplete chunk decode: " + offset + " != " + inflated.length);
+          }
         });
       }
     };
 
     ClientMC.prototype.addColumn = function(args) {
-      var blockName, blockType, chunkX, chunkY, chunkZ, column, dx, dy, dz, miniChunk, offset, ourBlockType, ox, oy, oz, size, vchunkKey, vchunkX, vchunkY, vchunkZ, x, y, z, _i, _results;
+      var blockName, blockType, chunkX, chunkY, chunkZ, column, dx, dy, dz, miniChunk, offset, ourBlockType, size, vchunkKey, vchunkXYZ, vindex, x, y, z, _i, _results;
       if (args.data.length === 0) {
         return;
       }
@@ -194,10 +195,8 @@
                       x = chunkX * 16 + dx;
                       y = chunkY * 16 + dy;
                       z = chunkZ * 16 + dz;
-                      vchunkX = Math.floor(x / this.game.chunkSize);
-                      vchunkY = Math.floor(y / this.game.chunkSize);
-                      vchunkZ = Math.floor(z / this.game.chunkSize);
-                      vchunkKey = [vchunkX, vchunkY, vchunkZ].join('|');
+                      vchunkXYZ = this.game.voxels.chunkAtCoordinates(x, y, z);
+                      vchunkKey = vchunkXYZ.join('|');
                       if ((_base = this.voxelChunks)[vchunkKey] == null) {
                         _base[vchunkKey] = new this.game.arrayType(this.game.chunkSize * this.game.chunkSize * this.game.chunkSize);
                       }
@@ -210,10 +209,8 @@
                         blockName = this.opts.mcBlocks["default"];
                       }
                       ourBlockType = this.registry.getBlockID(blockName);
-                      ox = Math.abs(x % this.game.chunkSize);
-                      oy = Math.abs(y % this.game.chunkSize);
-                      oz = Math.abs(z % this.game.chunkSize);
-                      _results3.push(this.voxelChunks[vchunkKey][ox + oy * this.game.chunkSize + oz * this.game.chunkSize * this.game.chunkSize] = ourBlockType);
+                      vindex = this.game.voxels.voxelIndexFromCoordinates(x, y, z);
+                      _results3.push(this.voxelChunks[vchunkKey][vindex] = ourBlockType);
                     }
                     return _results3;
                   }).call(this));

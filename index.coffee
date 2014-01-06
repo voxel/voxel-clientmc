@@ -73,7 +73,7 @@ class ClientMC
   enable: () ->
     @game.plugins?.disable('voxel-land')    # also provides chunks, use ours instead
     #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
-    @game.plugins?.get('voxel-player').moveTo -289, 80, -340
+    @game.plugins?.get('voxel-player').moveTo -255, 83, -319
     @game.plugins?.enable('voxel-fly')
 
     @ws = websocket_stream(@opts.url, {type: Uint8Array})
@@ -115,7 +115,7 @@ class ClientMC
         for meta, i in payload.meta
           size = (8192 + (if payload.skyLightSent then 2048 else 0)) *
             onesInShort(meta.bitMap) +
-            2048 * onesInShort(meta.addBitMap) + 256;
+            2048 * onesInShort(meta.addBitMap) + 256
           @addColumn(
             x: meta.x
             z: meta.z
@@ -126,6 +126,9 @@ class ClientMC
             data: inflated.slice(offset, offset + size)
           )
           offset += size
+
+        if offset != inflated.length
+          console.log "incomplete chunk decode: #{offset} != #{inflated.length}"
 
 
   addColumn: (args) ->
@@ -161,11 +164,9 @@ class ClientMC
               z = chunkZ*16 + dz
 
               # voxel-engine uses XYZ, (by default) 32x32x32
-              vchunkX = Math.floor(x / @game.chunkSize) # TODO: shift like voxels.chunkAtCoordinates?
-              vchunkY = Math.floor(y / @game.chunkSize) # TODO: shift like voxels.chunkAtCoordinates?
-              vchunkZ = Math.floor(z / @game.chunkSize) # TODO: shift like voxels.chunkAtCoordinates?
+              vchunkXYZ = @game.voxels.chunkAtCoordinates(x, y, z)  # calculates chunk coordinates
 
-              vchunkKey = [vchunkX, vchunkY, vchunkZ].join('|')
+              vchunkKey = vchunkXYZ.join('|')
               @voxelChunks[vchunkKey] ?= new @game.arrayType(@game.chunkSize * @game.chunkSize * @game.chunkSize)
 
               blockName = @opts.mcBlocks[blockType]
@@ -179,10 +180,8 @@ class ClientMC
               ourBlockType = @registry.getBlockID(blockName)
 
               # our block offsets within the chunk, scaled
-              ox = Math.abs(x % @game.chunkSize)
-              oy = Math.abs(y % @game.chunkSize)
-              oz = Math.abs(z % @game.chunkSize)
-              @voxelChunks[vchunkKey][ox + oy*@game.chunkSize + oz*@game.chunkSize*@game.chunkSize] = ourBlockType
+              vindex = @game.voxels.voxelIndexFromCoordinates(x, y, z)
+              @voxelChunks[vchunkKey][vindex] = ourBlockType
 
       else
         # entirely air
