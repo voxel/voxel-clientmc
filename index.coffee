@@ -35,8 +35,8 @@ decodePacket = (data) -> # based on https://github.com/deathcap/wsmc/tree/master
 onesInShort = (n) ->
   n = n & 0xffff
   count = 0
-  for i in [0..16]
-    count += +((1 << i) & n)
+  for i in [0...16]
+    count += +!!((1 << i) & n)
   count
 
 class ClientMC
@@ -129,6 +129,8 @@ class ClientMC
 
 
   addColumn: (args) ->
+    return if args.data.length == 0 # ?
+
     chunkX = args.x
     chunkZ = args.z
     console.log 'add column', chunkX, chunkZ
@@ -137,31 +139,31 @@ class ClientMC
 
     offset = 0
     size = 4096
-    for chunkY in [0..16]
+    for chunkY in [0...16]
       if args.bitMap & (1 << chunkY)
         miniChunk = args.data.slice(offset, offset + size)
         offset += size
 
         # convert MC's chunks to voxel-engine's
         # TODO: speed this up somehow
-        for dy in [0..16]
-          for dz in [0..16]
-            for dx in [0..16]
+        for dy in [0...16]
+          for dz in [0...16]
+            for dx in [0...16]
 
               # MC uses XZY ordering, 16x16x16 mini-chunks
               blockType = miniChunk[dx + dz*16 + dy*16*16]
+              if !blockType?
+                console.log('no block!', args)
+                debugger
 
               x = chunkX*16 + dx
               y = chunkY*16 + dy
               z = chunkZ*16 + dz
 
               # voxel-engine uses XYZ, (by default) 32x32x32
-              [vchunkX, vchunkY, vchunkZ] = @game.voxels.chunkAtCoordinates(x, y, z) # computes coords
-              #vchunkX = x >> 5
-              #vchunkY = y >> 5
-              #vchunkZ = z >> 5
+              vchunkXYZ = @game.voxels.chunkAtCoordinates(x, y, z) # computes coords
 
-              vchunkKey = [vchunkX, vchunkY, vchunkZ].join('|')
+              vchunkKey = vchunkXYZ.join('|')
               @voxelChunks[vchunkKey] ?= new @game.arrayType(@game.chunkSize * @game.chunkSize * @game.chunkSize)
 
               blockName = @opts.mcBlocks[blockType]

@@ -44,8 +44,8 @@
     var count, i, _i;
     n = n & 0xffff;
     count = 0;
-    for (i = _i = 0; _i <= 16; i = ++_i) {
-      count += +((1 << i) & n);
+    for (i = _i = 0; _i < 16; i = ++_i) {
+      count += +(!!((1 << i) & n));
     }
     return count;
   };
@@ -159,7 +159,10 @@
     };
 
     ClientMC.prototype.addColumn = function(args) {
-      var blockName, blockType, chunkX, chunkY, chunkZ, column, dx, dy, dz, miniChunk, offset, ourBlockType, size, vchunkKey, vchunkX, vchunkY, vchunkZ, x, y, z, _i, _results;
+      var blockName, blockType, chunkX, chunkY, chunkZ, column, dx, dy, dz, miniChunk, offset, ourBlockType, size, vchunkKey, vchunkXYZ, x, y, z, _i, _results;
+      if (args.data.length === 0) {
+        return;
+      }
       chunkX = args.x;
       chunkZ = args.z;
       console.log('add column', chunkX, chunkZ);
@@ -167,28 +170,32 @@
       offset = 0;
       size = 4096;
       _results = [];
-      for (chunkY = _i = 0; _i <= 16; chunkY = ++_i) {
+      for (chunkY = _i = 0; _i < 16; chunkY = ++_i) {
         if (args.bitMap & (1 << chunkY)) {
           miniChunk = args.data.slice(offset, offset + size);
           offset += size;
           _results.push((function() {
             var _j, _results1;
             _results1 = [];
-            for (dy = _j = 0; _j <= 16; dy = ++_j) {
+            for (dy = _j = 0; _j < 16; dy = ++_j) {
               _results1.push((function() {
                 var _k, _results2;
                 _results2 = [];
-                for (dz = _k = 0; _k <= 16; dz = ++_k) {
+                for (dz = _k = 0; _k < 16; dz = ++_k) {
                   _results2.push((function() {
-                    var _base, _base1, _l, _ref, _results3;
+                    var _base, _base1, _l, _results3;
                     _results3 = [];
-                    for (dx = _l = 0; _l <= 16; dx = ++_l) {
+                    for (dx = _l = 0; _l < 16; dx = ++_l) {
                       blockType = miniChunk[dx + dz * 16 + dy * 16 * 16];
+                      if (blockType == null) {
+                        console.log('no block!', args);
+                        debugger;
+                      }
                       x = chunkX * 16 + dx;
                       y = chunkY * 16 + dy;
                       z = chunkZ * 16 + dz;
-                      _ref = this.game.voxels.chunkAtCoordinates(x, y, z), vchunkX = _ref[0], vchunkY = _ref[1], vchunkZ = _ref[2];
-                      vchunkKey = [vchunkX, vchunkY, vchunkZ].join('|');
+                      vchunkXYZ = this.game.voxels.chunkAtCoordinates(x, y, z);
+                      vchunkKey = vchunkXYZ.join('|');
                       if ((_base = this.voxelChunks)[vchunkKey] == null) {
                         _base[vchunkKey] = new this.game.arrayType(this.game.chunkSize * this.game.chunkSize * this.game.chunkSize);
                       }
