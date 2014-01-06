@@ -9,25 +9,6 @@ module.exports = (game, opts) ->
 module.exports.pluginInfo =
   loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry']
 
-# map http://minecraft.gamepedia.com/Data_values#Block_IDs to our block names
-mcBlocks = 
-  0: 'air'
-  1: 'stone'
-  2: 'grass'
-  3: 'dirt'
-  4: 'cobblestone'
-  5: 'planksOak'
-
-  7: 'obsidian'   # bedrock
-
-  17: 'logOak'
-  18: 'leavesOak'
-
-  161: 'leavesOak'
-  162: 'logOak'
-
-  default: 'bricks'
-
 
 decodePacket = (data) -> # based on https://github.com/deathcap/wsmc/tree/master/examples/mcwebchat
   if !(data instanceof Uint8Array)
@@ -63,12 +44,36 @@ class ClientMC
     @registry = @game.plugins?.get('voxel-registry') ? throw 'voxel-clientmc requires voxel-registry plugin'
 
     @opts.url ?= 'ws://localhost:1234'
+
+    # map http://minecraft.gamepedia.com/Data_values#Block_IDs to our block names
+    @opts.mcBlocks ?= 
+      0: 'air'
+      1: 'stone'
+      2: 'grass'
+      3: 'dirt'
+      4: 'cobblestone'
+      5: 'planksOak'
+
+      7: 'obsidian'   # bedrock
+
+      16: 'oreCoal'
+
+      17: 'logOak'
+      18: 'leavesOak'
+
+      161: 'leavesOak'
+      162: 'logOak'
+
+      default: 'brick'
+
+    @unrecognizedBlocks = {}
+
     @enable()
 
   enable: () ->
     @game.plugins?.disable('voxel-land')    # also provides chunks, use ours instead
     #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
-    @game.plugins?.get('voxel-player').moveTo -248, 77, -198
+    @game.plugins?.get('voxel-player').moveTo -289, 80, -340
     @game.plugins?.enable('voxel-fly')
 
     @ws = websocket_stream(@opts.url, {type: Uint8Array})
@@ -159,7 +164,14 @@ class ClientMC
               vchunkKey = [vchunkX, vchunkY, vchunkZ].join('|')
               @voxelChunks[vchunkKey] ?= new @game.arrayType(@game.chunkSize * @game.chunkSize * @game.chunkSize)
 
-              blockName = mcBlocks[blockType] ? mcBlocks.default
+              blockName = @opts.mcBlocks[blockType]
+
+              if not blockName?
+                # save count of unrecognized IDs, then use placeholder
+                @unrecognizedBlocks[blockType] ?= 0
+                @unrecognizedBlocks[blockType] += 1
+                blockName = @opts.mcBlocks.default
+
               ourBlockType = @registry.getBlockID(blockName)
               @voxelChunks[vchunkKey][dx + dy*@game.chunkSize + dz*@game.chunkSize*@game.chunkSize] = ourBlockType
 
