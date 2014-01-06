@@ -6,6 +6,29 @@ zlib = require 'zlib-browserify'
 module.exports = (game, opts) ->
   return new ClientMC(game, opts)
 
+module.exports.pluginInfo =
+  loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry']
+
+# map http://minecraft.gamepedia.com/Data_values#Block_IDs to our block names
+mcBlocks = 
+  0: 'air'
+  1: 'stone'
+  2: 'grass'
+  3: 'dirt'
+  4: 'cobblestone'
+  5: 'planksOak'
+
+  7: 'obsidian'   # bedrock
+
+  17: 'logOak'
+  18: 'leavesOak'
+
+  161: 'leavesOak'
+  162: 'logOak'
+
+  default: 'bricks'
+
+
 decodePacket = (data) -> # based on https://github.com/deathcap/wsmc/tree/master/examples/mcwebchat
   if !(data instanceof Uint8Array)
     return undefined
@@ -37,11 +60,16 @@ onesInShort = (n) ->
 
 class ClientMC
   constructor: (@game, @opts) ->
+    @registry = @game.plugins?.get('voxel-registry') ? throw 'voxel-clientmc requires voxel-registry plugin'
+
     @opts.url ?= 'ws://localhost:1234'
     @enable()
 
   enable: () ->
-    @game.plugins?.disable('voxel-land')    # conflicts
+    @game.plugins?.disable('voxel-land')    # also provides chunks, use ours instead
+    #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
+    @game.plugins?.get('voxel-player').moveTo -248, 77, -198
+    @game.plugins?.enable('voxel-fly')
 
     @ws = websocket_stream(@opts.url, {type: Uint8Array})
 
@@ -65,10 +93,10 @@ class ClientMC
 
   handlePacket: (name, payload) ->
     if name == 'map_chunk_bulk'
-      console.log payload
+      #console.log payload
       compressed = payload.compressedChunkData
-      console.log 'map_chunk_bulk',compressed.length
-      console.log 'payload.meta', payload
+      #console.log 'map_chunk_bulk',compressed.length
+      #console.log 'payload.meta', payload
       return if !payload.meta?
 
       zlib.inflate compressed, (err, inflated) =>  # TODO: run in webworker?
@@ -96,7 +124,7 @@ class ClientMC
 
 
   addColumn: (args) ->
-    console.log 'add column', args
+    console.log 'add column', args.x, args.z
 
     column = []
 
@@ -119,19 +147,24 @@ class ClientMC
   missingChunk: (pos) ->
     console.log 'missingChunk',pos
 
-    chunkXZ = Object.keys(@columns)[0]     # TODO: load actual chunk
-    chunkY = 0
+    chunkX = Math.floor(pos[0] * @game.chunkSize / 16)
+    chunkY = Math.floor(pos[1] * @game.chunkSize / 16)
+    chunkZ = Math.floor(pos[2] * @game.chunkSize / 16)
+    chunkXZ = chunkX + '|' + chunkZ
+
     if not @columns[chunkXZ]?
-      console.log 'no chunkXZ ',chunkXZ
+      #console.log 'no chunkXZ ',chunkXZ
       return
     voxels = @columns[chunkXZ][chunkY]
+    return if not voxels?
     for i in [0...voxels.length]
-      voxels[i] = voxels[i] & 15    # limit available block IDs TODO: map through v-registry
+      if voxels[i] != 0
+        name = mcBlocks[voxels[i]] ? mcBlocks.default
+        voxels[i] = @registry.getBlockID(name)
 
     chunk = {
       position: pos
-      #dims: [32, 32, 32]   # TODO
-      dims: [16, 16, 16]
+      dims: [32, 32, 32]   # TODO
       voxels: voxels}
 
     @game.showChunk(chunk)
