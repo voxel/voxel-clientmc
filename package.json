@@ -1,6 +1,6 @@
 {
   "name": "voxel-clientmc",
-  "description": "",
+  "description": "Minecraft client using WebSockets (voxel.js plugin)",
   "version": "0.0.1",
   "repository": {
     "type": "git",
