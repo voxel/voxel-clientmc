@@ -58,10 +58,16 @@
     }
 
     ClientMC.prototype.enable = function() {
-      var _this = this;
+      var _ref,
+        _this = this;
+      if ((_ref = this.game.plugins) != null) {
+        _ref.disable('voxel-land');
+      }
       this.ws = websocket_stream(this.opts.url, {
         type: Uint8Array
       });
+      this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
+      this.columns = {};
       this.ws.on('error', function(err) {
         return console.log('WebSocket error', err);
       });
@@ -76,6 +82,7 @@
     };
 
     ClientMC.prototype.disable = function() {
+      this.game.voxels.removeListener('missingChunk', this.missingChunk);
       return this.ws.end();
     };
 
@@ -118,8 +125,44 @@
       }
     };
 
-    ClientMC.prototype.addColumn = function(column) {
-      return console.log('add column', column);
+    ClientMC.prototype.addColumn = function(args) {
+      var column, offset, size, y, _i;
+      console.log('add column', args);
+      column = [];
+      offset = 0;
+      size = 4096;
+      for (y = _i = 0; _i <= 16; y = ++_i) {
+        if (args.bitMap & (1 << y)) {
+          column[y] = args.data.slice(offset, offset + size);
+          offset += size;
+        } else {
+          column[y] = null;
+        }
+      }
+      this.columns[args.x + '|' + args.z] = column;
+      return window.c = this.columns;
+    };
+
+    ClientMC.prototype.missingChunk = function(pos) {
+      var chunk, chunkXZ, chunkY, i, voxels, _i, _ref;
+      console.log('missingChunk', pos);
+      chunkXZ = Object.keys(this.columns)[0];
+      chunkY = 0;
+      if (this.columns[chunkXZ] == null) {
+        console.log('no chunkXZ ', chunkXZ);
+        return;
+      }
+      voxels = this.columns[chunkXZ][chunkY];
+      for (i = _i = 0, _ref = voxels.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+        voxels[i] = voxels[i] & 15;
+      }
+      chunk = {
+        position: pos,
+        dims: [16, 16, 16],
+        voxels: voxels
+      };
+      this.game.showChunk(chunk);
+      return console.log('voxels', voxels);
     };
 
     return ClientMC;

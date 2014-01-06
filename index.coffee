@@ -41,7 +41,13 @@ class ClientMC
     @enable()
 
   enable: () ->
+    @game.plugins?.disable('voxel-land')    # conflicts
+
     @ws = websocket_stream(@opts.url, {type: Uint8Array})
+
+    @game.voxels.on 'missingChunk', @missingChunk.bind(this)
+
+    @columns = {}  # [chunkX,chunkZ][chunkY][block XYZ]
 
     @ws.on 'error', (err) ->
       console.log 'WebSocket error', err
@@ -54,6 +60,7 @@ class ClientMC
       @handlePacket packet.name, packet.payload
 
   disable: () ->
+    @game.voxels.removeListener 'missingChunk', @missingChunk
     @ws.end()
 
   handlePacket: (name, payload) ->
@@ -88,6 +95,44 @@ class ClientMC
           offset += size
 
 
-  addColumn: (column) ->
-    console.log 'add column', column
+  addColumn: (args) ->
+    console.log 'add column', args
 
+    column = []
+
+    offset = 0
+    size = 4096
+    for y in [0..16]
+      if args.bitMap & (1 << y)
+        column[y] = args.data.slice(offset, offset + size)
+        offset += size
+      else
+        column[y] = null   # entirely air
+
+    # TODO: metadata,light,sky,add,biome
+
+
+    @columns[args.x + '|' + args.z] = column # TODO: store better
+
+    window.c = @columns
+
+  missingChunk: (pos) ->
+    console.log 'missingChunk',pos
+
+    chunkXZ = Object.keys(@columns)[0]     # TODO: load actual chunk
+    chunkY = 0
+    if not @columns[chunkXZ]?
+      console.log 'no chunkXZ ',chunkXZ
+      return
+    voxels = @columns[chunkXZ][chunkY]
+    for i in [0...voxels.length]
+      voxels[i] = voxels[i] & 15    # limit available block IDs TODO: map through v-registry
+
+    chunk = {
+      position: pos
+      #dims: [32, 32, 32]   # TODO
+      dims: [16, 16, 16]
+      voxels: voxels}
+
+    @game.showChunk(chunk)
+    console.log 'voxels',voxels
