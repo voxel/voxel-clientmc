@@ -161,9 +161,11 @@ class ClientMC
               z = chunkZ*16 + dz
 
               # voxel-engine uses XYZ, (by default) 32x32x32
-              vchunkXYZ = @game.voxels.chunkAtCoordinates(x, y, z) # computes coords
+              vchunkX = Math.floor(x / @game.chunkSize) # TODO: shift like voxels.chunkAtCoordinates?
+              vchunkY = Math.floor(y / @game.chunkSize) # TODO: shift like voxels.chunkAtCoordinates?
+              vchunkZ = Math.floor(z / @game.chunkSize) # TODO: shift like voxels.chunkAtCoordinates?
 
-              vchunkKey = vchunkXYZ.join('|')
+              vchunkKey = [vchunkX, vchunkY, vchunkZ].join('|')
               @voxelChunks[vchunkKey] ?= new @game.arrayType(@game.chunkSize * @game.chunkSize * @game.chunkSize)
 
               blockName = @opts.mcBlocks[blockType]
@@ -175,7 +177,12 @@ class ClientMC
                 blockName = @opts.mcBlocks.default
 
               ourBlockType = @registry.getBlockID(blockName)
-              @voxelChunks[vchunkKey][dx + dy*@game.chunkSize + dz*@game.chunkSize*@game.chunkSize] = ourBlockType
+
+              # our block offsets within the chunk, scaled
+              ox = Math.abs(x % @game.chunkSize)
+              oy = Math.abs(y % @game.chunkSize)
+              oz = Math.abs(z % @game.chunkSize)
+              @voxelChunks[vchunkKey][ox + oy*@game.chunkSize + oz*@game.chunkSize*@game.chunkSize] = ourBlockType
 
       else
         # entirely air

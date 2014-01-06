@@ -159,7 +159,7 @@
     };
 
     ClientMC.prototype.addColumn = function(args) {
-      var blockName, blockType, chunkX, chunkY, chunkZ, column, dx, dy, dz, miniChunk, offset, ourBlockType, size, vchunkKey, vchunkXYZ, x, y, z, _i, _results;
+      var blockName, blockType, chunkX, chunkY, chunkZ, column, dx, dy, dz, miniChunk, offset, ourBlockType, ox, oy, oz, size, vchunkKey, vchunkX, vchunkY, vchunkZ, x, y, z, _i, _results;
       if (args.data.length === 0) {
         return;
       }
@@ -194,8 +194,10 @@
                       x = chunkX * 16 + dx;
                       y = chunkY * 16 + dy;
                       z = chunkZ * 16 + dz;
-                      vchunkXYZ = this.game.voxels.chunkAtCoordinates(x, y, z);
-                      vchunkKey = vchunkXYZ.join('|');
+                      vchunkX = Math.floor(x / this.game.chunkSize);
+                      vchunkY = Math.floor(y / this.game.chunkSize);
+                      vchunkZ = Math.floor(z / this.game.chunkSize);
+                      vchunkKey = [vchunkX, vchunkY, vchunkZ].join('|');
                       if ((_base = this.voxelChunks)[vchunkKey] == null) {
                         _base[vchunkKey] = new this.game.arrayType(this.game.chunkSize * this.game.chunkSize * this.game.chunkSize);
                       }
@@ -208,7 +210,10 @@
                         blockName = this.opts.mcBlocks["default"];
                       }
                       ourBlockType = this.registry.getBlockID(blockName);
-                      _results3.push(this.voxelChunks[vchunkKey][dx + dy * this.game.chunkSize + dz * this.game.chunkSize * this.game.chunkSize] = ourBlockType);
+                      ox = Math.abs(x % this.game.chunkSize);
+                      oy = Math.abs(y % this.game.chunkSize);
+                      oz = Math.abs(z % this.game.chunkSize);
+                      _results3.push(this.voxelChunks[vchunkKey][ox + oy * this.game.chunkSize + oz * this.game.chunkSize * this.game.chunkSize] = ourBlockType);
                     }
                     return _results3;
                   }).call(this));
