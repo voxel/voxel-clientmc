@@ -6,6 +6,34 @@ zlib = require 'zlib-browserify'
 module.exports = (game, opts) ->
   return new ClientMC(game, opts)
 
+decodePacket = (data) -> # based on https://github.com/deathcap/wsmc/tree/master/examples/mcwebchat
+  if !(data instanceof Uint8Array)
+    return undefined
+
+  # convert typed array to NodeJS buffer for minecraft-protocol's API
+  # TODO: is this conversion fast? backed by ArrayBuffer in Browserify 3, see https://npmjs.org/package/native-buffer-browserify
+  #  but is this the right way to "convert" from an ArrayBuffer to a Buffer, without copying?
+  data._isBuffer = true
+  buffer = new Buffer(data)
+
+  result = minecraft_protocol.protocol.parsePacket(buffer)
+  if !result || result.error
+    console.log('protocol parse error: ' + JSON.stringify(result.error))
+    return undefined
+
+  payload = result.results.data
+  id = result.results.id
+  name = minecraft_protocol.protocol.packetNames[minecraft_protocol.protocol.states.PLAY].toClient[id]
+
+  return {name:name, id:id, payload:payload};
+
+
+onesInShort = (n) ->
+  n = n & 0xffff
+  count = 0
+  for i in [0..16]
+    count += +((1 << i) & n)
+  count
 
 class ClientMC
   constructor: (@game, @opts) ->
@@ -19,7 +47,7 @@ class ClientMC
       console.log 'WebSocket error', err
 
     @ws.on 'data', (data) =>
-      packet = @decodePacket(data)
+      packet = decodePacket(data)
       if not packet?
         return
 
@@ -29,64 +57,37 @@ class ClientMC
     @ws.end()
 
   handlePacket: (name, payload) ->
-    console.log 'got',name,payload
-    debugger
-
-    # TODO
     if name == 'map_chunk_bulk'
       console.log payload
-      compressed = payload.data.compressedChunkData
+      compressed = payload.compressedChunkData
       console.log 'map_chunk_bulk',compressed.length
+      console.log 'payload.meta', payload
+      return if !payload.meta?
 
-      zlib.inflate compressed, (err, result) ->  # TODO: run in webworker
-        console.log '  decomp', result.length
-        console.log result
+      zlib.inflate compressed, (err, inflated) =>  # TODO: run in webworker?
+        return err if err
+        console.log '  decomp', inflated.length
 
-        # convert from Node's "Buffer" type to browser's typed arrays TODO: is this slow?
-        chunksData = new Uint8Array(result)
+        # unpack chunk data
+        # based on https://github.com/superjoe30/mineflayer/blob/cc3eae10f622da24c9051268e9fc8ec3fe01ed7e/lib/plugins/blocks.js#L195
+        # and http://wiki.vg/SMP_Map_Format#Data
+        offset = meta = size = 0
+        for meta, i in payload.meta
+          size = (8192 + (if payload.skyLightSent then 2048 else 0)) *
+            onesInShort(meta.bitMap) +
+            2048 * onesInShort(meta.addBitMap) + 256;
+          @addColumn(
+            x: meta.x
+            z: meta.z
+            bitMap: meta.bitMap
+            addBitMap: meta.addBitMap
+            skyLightSent: payload.skyLightSent
+            groundUp: true
+            data: inflated.slice(offset, offset + size)
+          )
+          offset += size
 
-        # http://wiki.vg/SMP_Map_Format#Data
-        # each section packed into zero or more 16x16x16 mini-chunks
-        at = 0
-        miniChunks = []
-        maxLength = result.length
 
-        skyLightSent = payload.skyLightSent   # Skylight (only in map_chunk_bulk assumed true in map_chunk)
-        groundUpContinuous = true             # Ground-up continuous (only in map_chunk - assumed true in map_chunk_bulk)
-        while at < maxLength
-          typeArray = chunksData.subarray(at, at += 16*16*16*1)   # Block type array - whole byte per block
-          metaArray = chunksData.subarray(at, at += 16*16*16/2)   # Block metadata array - half byte per block
-          lightArray = chunksData.subarray(at, at += 16*16*16/2)  # Block light array - half byte per block
-          skyArray = chunksData.subarray(at, at += 16*16*16/2) if skyLightSent   # Sky light array - half byte per block - only if 'skylight' is true
-          addArray = chunksData.subarray(at, at += 16*16*16/2)    # Add array - half byte per block - uses secondary bitmask
-          biomeArray = chunksData.subarray(at, at += 256) if groundUpContinuous  # Biome array - whole byte per XZ coordinate, 256 bytes total, only sent if 'ground up continuous' is true
-
-          miniChunks.push {types:typeArray}
-
-        window.result = result
-        window.x = this
-
-        debugger
-
-  decodePacket: (data) -> # based on https://github.com/deathcap/wsmc/tree/master/examples/mcwebchat
-    if !(data instanceof Uint8Array)
-      return undefined
-
-    # convert typed array to NodeJS buffer for minecraft-protocol's API
-    # TODO: is this conversion fast? backed by ArrayBuffer in Browserify 3, see https://npmjs.org/package/native-buffer-browserify
-    #  but is this the right way to "convert" from an ArrayBuffer to a Buffer, without copying?
-    data._isBuffer = true
-    buffer = new Buffer(data)
-
-    result = minecraft_protocol.protocol.parsePacket(buffer)
-    if !result || result.error
-      console.log('protocol parse error: ' + JSON.stringify(result.error))
-      return undefined
-
-    payload = result.results
-    id = result.results.id
-    name = minecraft_protocol.protocol.packetNames[minecraft_protocol.protocol.states.PLAY].toClient[id]
-
-    return {name:name, id:id, payload:payload};
-
+  addColumn: (column) ->
+    console.log 'add column', column
 
