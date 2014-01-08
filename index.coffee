@@ -152,18 +152,17 @@ class ClientMC
         # convert MC's chunks to voxel-engine's
         # TODO: speed this up somehow
         for dy in [0...16]
+          z = chunkZ*16 + dz
           for dz in [0...16]
+            y = chunkY*16 + dy
             for dx in [0...16]
+              x = chunkX*16 + dx
 
               # MC uses XZY ordering, 16x16x16 mini-chunks
               blockType = miniChunk[dx + dz*16 + dy*16*16]
               if !blockType?
                 console.log('no block!', args)
                 debugger
-
-              x = chunkX*16 + dx
-              y = chunkY*16 + dy
-              z = chunkZ*16 + dz
 
               # voxel-engine uses XYZ, (by default) 32x32x32
               vchunkXYZ = @game.voxels.chunkAtCoordinates(x, y, z)  # calculates chunk coordinates

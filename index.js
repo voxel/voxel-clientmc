@@ -178,16 +178,16 @@
           miniChunk = args.data.slice(offset, offset + size);
           offset += size;
           for (dy = _j = 0; _j < 16; dy = ++_j) {
+            z = chunkZ * 16 + dz;
             for (dz = _k = 0; _k < 16; dz = ++_k) {
+              y = chunkY * 16 + dy;
               for (dx = _l = 0; _l < 16; dx = ++_l) {
+                x = chunkX * 16 + dx;
                 blockType = miniChunk[dx + dz * 16 + dy * 16 * 16];
                 if (blockType == null) {
                   console.log('no block!', args);
                   debugger;
                 }
-                x = chunkX * 16 + dx;
-                y = chunkY * 16 + dy;
-                z = chunkZ * 16 + dz;
                 vchunkXYZ = this.game.voxels.chunkAtCoordinates(x, y, z);
                 vchunkKey = vchunkXYZ.join('|');
                 if ((_base = this.voxelChunks)[vchunkKey] == null) {
