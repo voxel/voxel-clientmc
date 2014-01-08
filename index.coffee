@@ -102,9 +102,10 @@ class ClientMC
       throw new Error("voxel-clientmc unrecognized block name: #{ourBlockName} for MC #{mcID}") if not ourBlockID?
       @translateBlockIDs[mcID] = ourBlockID
 
-    # for chunk conversion
+    # for chunk conversion - see voxel/chunker.js
     @chunkBits = Math.log(@game.chunkSize) / Math.log(2) # must be power of two
     @chunkBits |= 0
+    @chunkMask = (1 << @chunkBits) - 1
 
   disable: () ->
     @game.voxels.removeListener 'missingChunk', @missingChunk
@@ -183,7 +184,7 @@ class ClientMC
               ourBlockID = @translateBlockIDs[mcBlockID]
 
               # our block offsets within the chunk, scaled
-              vindex = @game.voxels.voxelIndexFromCoordinates(x, y, z)
+              vindex = (x & @chunkMask) + ((y & @chunkMask) << @chunkBits) + ((z & @chunkMask) << @chunkBits * 2)
               @voxelChunks[vchunkKey][vindex] = ourBlockID
 
       else

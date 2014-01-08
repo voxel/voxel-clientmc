@@ -131,7 +131,8 @@
         this.translateBlockIDs[mcID] = ourBlockID;
       }
       this.chunkBits = Math.log(this.game.chunkSize) / Math.log(2);
-      return this.chunkBits |= 0;
+      this.chunkBits |= 0;
+      return this.chunkMask = (1 << this.chunkBits) - 1;
     };
 
     ClientMC.prototype.disable = function() {
@@ -206,7 +207,7 @@
                   _base[vchunkKey] = new this.game.arrayType(this.game.chunkSize * this.game.chunkSize * this.game.chunkSize);
                 }
                 ourBlockID = this.translateBlockIDs[mcBlockID];
-                vindex = this.game.voxels.voxelIndexFromCoordinates(x, y, z);
+                vindex = (x & this.chunkMask) + ((y & this.chunkMask) << this.chunkBits) + ((z & this.chunkMask) << this.chunkBits * 2);
                 this.voxelChunks[vchunkKey][vindex] = ourBlockID;
               }
             }
