@@ -1,7 +1,7 @@
 websocket_stream = require 'websocket-stream'
 minecraft_protocol = require 'minecraft-protocol'
 ever = require 'ever'
-zlib = require 'zlib-browserify'
+webworkify = require 'webworkify'
 
 module.exports = (game, opts) ->
   return new ClientMC(game, opts)
@@ -90,6 +90,10 @@ class ClientMC
 
       @handlePacket packet.name, packet.payload
 
+    @zlib_worker = webworkify(require('./zlib_worker.js'))
+    ever(@zlib_worker).on 'message', @onDecompressed.bind(@)
+    @packetPayloadsPending = {}
+    @packetPayloadsNextID = 0
 
     maxId = 255 # TODO: 4096?
 
@@ -113,36 +117,65 @@ class ClientMC
 
   handlePacket: (name, payload) ->
     if name == 'map_chunk_bulk'
-      compressed = payload.compressedChunkData
       return if !payload.meta?
+      console.log 'payload.compressedChunkData ',payload.compressedChunkData.length,payload.compressedChunkData
 
-      zlib.inflate compressed, (err, inflated) =>  # TODO: run in webworker?
-        return err if err
-        console.log '  decomp', inflated.length
+      # copies ArrayBuffer, since .buffer refers to the entire backing storage! (vs 
+      # only the compressedChunkData we want to compress). TODO: fix this hack
+      thisArrayBuffer = payload.compressedChunkData.buffer.slice(
+        payload.compressedChunkData.byteOffset,
+        payload.compressedChunkData.byteOffset + payload.compressedChunkData.length)
 
-        # unpack chunk data
-        # based on https://github.com/superjoe30/mineflayer/blob/cc3eae10f622da24c9051268e9fc8ec3fe01ed7e/lib/plugins/blocks.js#L195
-        # and http://wiki.vg/SMP_Map_Format#Data
-        offset = meta = size = 0
-        for meta, i in payload.meta
-          size = (8192 + (if payload.skyLightSent then 2048 else 0)) *
-            onesInShort(meta.bitMap) +
-            2048 * onesInShort(meta.addBitMap) + 256
-          @addColumn(
-            x: meta.x
-            z: meta.z
-            bitMap: meta.bitMap
-            addBitMap: meta.addBitMap
-            skyLightSent: payload.skyLightSent
-            groundUp: true
-            data: inflated.slice(offset, offset + size)
-          )
-          offset += size
+      #thisArrayView = new Uint8Array(thisArrayBuffer)
+      #window.Buffer = Buffer
+      #require('zlib-browserify').inflate thisArrayView, (err, decompressed) =>
+      #  console.log 'NON-WORKER decomp=',err+'',decompressed
 
-        if offset != inflated.length
-          console.log "incomplete chunk decode: #{offset} != #{inflated.length}"
+      id = @packetPayloadsNextID
+      @packetPayloadsPending[id] = payload  # save for continued processing in onDecompressed
+      @packetPayloadsNextID += 1
+      console.log 'sending compressedBuffer ',thisArrayBuffer
+      @zlib_worker.postMessage {id:id, compressed:thisArrayBuffer}, [thisArrayBuffer]
+    
+
+  onDecompressed: (ev) ->
+    console.log 'onDecompressed',ev
+
+    id = ev.data.id
+    payload = @packetPayloadsPending[id]
+    delete @packetPayloadsPending[id]
+
+    if ev.data.err
+      console.log 'received decompression error',ev.data.err,' for ',ev.data.id
+      return
+
+    inflated = new Buffer(new Uint8Array(ev.data.decompressed))  # new Buffer() for .slice method below. TODO: replace with typed array alternative
+    console.log '  decomp', id, inflated.length
+
+    # unpack chunk data
+    # based on https://github.com/superjoe30/mineflayer/blob/cc3eae10f622da24c9051268e9fc8ec3fe01ed7e/lib/plugins/blocks.js#L195
+    # and http://wiki.vg/SMP_Map_Format#Data
+    offset = meta = size = 0
+    for meta, i in payload.meta
+      size = (8192 + (if payload.skyLightSent then 2048 else 0)) *
+        onesInShort(meta.bitMap) +
+        2048 * onesInShort(meta.addBitMap) + 256
+      @addColumn(
+        x: meta.x
+        z: meta.z
+        bitMap: meta.bitMap
+        addBitMap: meta.addBitMap
+        skyLightSent: payload.skyLightSent
+        groundUp: true
+        data: inflated.slice(offset, offset + size)
+      )
+      offset += size
+
+    if offset != inflated.length
+      console.log "incomplete chunk decode: #{offset} != #{inflated.length}"
 
 
+  # convert MC chunk format to ours, caching to be ready for missingChunk()
   addColumn: (args) ->
     chunkX = args.x
     chunkZ = args.z
