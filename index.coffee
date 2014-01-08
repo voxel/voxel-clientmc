@@ -167,9 +167,9 @@ class ClientMC
         # convert MC's chunks to voxel-engine's
         # TODO: speed this up somehow
         for dy in [0...16]
-          z = chunkZ*16 + dz
+          y = chunkY*16 + dy
           for dz in [0...16]
-            y = chunkY*16 + dy
+            z = chunkZ*16 + dz
             for dx in [0...16]
               x = chunkX*16 + dx
 
