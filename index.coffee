@@ -73,7 +73,7 @@ class ClientMC
   enable: () ->
     @game.plugins?.disable('voxel-land')    # also provides chunks, use ours instead
     #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
-    @game.plugins?.get('voxel-player').moveTo -255, 83, -319
+    @game.plugins?.get('voxel-player').moveTo -251, 81, -309
     @game.plugins?.enable('voxel-fly')
 
     @ws = websocket_stream(@opts.url, {type: Uint8Array})
@@ -103,6 +103,8 @@ class ClientMC
       #console.log 'map_chunk_bulk',compressed.length
       #console.log 'payload.meta', payload
       return if !payload.meta?
+
+      return if @columnsAdded > 0  # TODO: remove. for faster testing decompression
 
       zlib.inflate compressed, (err, inflated) =>  # TODO: run in webworker?
         return err if err
@@ -190,7 +192,8 @@ class ClientMC
     
     finished = window.performance.now()
     console.log "took #{finished - started} ms"
-
+    @columnsAdded ?= 0
+    @columnsAdded += 1
 
   missingChunk: (pos) ->
     voxels = @voxelChunks[pos.join('|')]

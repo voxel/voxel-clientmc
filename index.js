@@ -94,7 +94,7 @@
         _ref.disable('voxel-land');
       }
       if ((_ref1 = this.game.plugins) != null) {
-        _ref1.get('voxel-player').moveTo(-255, 83, -319);
+        _ref1.get('voxel-player').moveTo(-251, 81, -309);
       }
       if ((_ref2 = this.game.plugins) != null) {
         _ref2.enable('voxel-fly');
@@ -128,6 +128,9 @@
       if (name === 'map_chunk_bulk') {
         compressed = payload.compressedChunkData;
         if (payload.meta == null) {
+          return;
+        }
+        if (this.columnsAdded > 0) {
           return;
         }
         return zlib.inflate(compressed, function(err, inflated) {
@@ -209,7 +212,11 @@
         }
       }
       finished = window.performance.now();
-      return console.log("took " + (finished - started) + " ms");
+      console.log("took " + (finished - started) + " ms");
+      if (this.columnsAdded == null) {
+        this.columnsAdded = 0;
+      }
+      return this.columnsAdded += 1;
     };
 
     ClientMC.prototype.missingChunk = function(pos) {
