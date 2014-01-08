@@ -52,7 +52,7 @@ class ClientMC
       2: 'grass'
       3: 'dirt'
       4: 'cobblestone'
-      5: 'planksOak'
+      5: 'plankOak'
 
       7: 'obsidian'   # bedrock
 
@@ -65,8 +65,6 @@ class ClientMC
       162: 'logOak'
 
       default: 'brick'
-
-    @unrecognizedBlocks = {}
 
     @enable()
 
@@ -91,6 +89,19 @@ class ClientMC
         return
 
       @handlePacket packet.name, packet.payload
+
+
+    maxId = 255 # TODO: 4096?
+
+    # array MC block ID -> our block ID
+    @translateBlockIDs = new @game.arrayType(maxId)
+    for mcID in @translateBlockIDs
+      @translateBlockIDs[mcID] = @opts.mcBlocks.default
+    for mcID, ourBlockName of @opts.mcBlocks
+      ourBlockID = @registry.getBlockID(ourBlockName)
+      throw new Error("unrecognized block name: #{ourBlockName} for MC #{mcID}") if not ourBlockID?
+      @translateBlockIDs[mcID] = ourBlockID
+
 
   disable: () ->
     @game.voxels.removeListener 'missingChunk', @missingChunk
@@ -159,10 +170,7 @@ class ClientMC
               x = chunkX*16 + dx
 
               # MC uses XZY ordering, 16x16x16 mini-chunks
-              blockType = miniChunk[dx + dz*16 + dy*16*16]
-              if !blockType?
-                console.log('no block!', args)
-                debugger
+              mcBlockID = miniChunk[dx + dz*16 + dy*16*16]
 
               # voxel-engine uses XYZ, (by default) 32x32x32
               vchunkXYZ = @game.voxels.chunkAtCoordinates(x, y, z)  # calculates chunk coordinates
@@ -170,19 +178,11 @@ class ClientMC
               vchunkKey = vchunkXYZ.join('|')
               @voxelChunks[vchunkKey] ?= new @game.arrayType(@game.chunkSize * @game.chunkSize * @game.chunkSize)
 
-              blockName = @opts.mcBlocks[blockType]
-
-              if not blockName?
-                # save count of unrecognized IDs, then use placeholder
-                @unrecognizedBlocks[blockType] ?= 0
-                @unrecognizedBlocks[blockType] += 1
-                blockName = @opts.mcBlocks.default
-
-              ourBlockType = @registry.getBlockID(blockName)
+              ourBlockID = @translateBlockIDs[mcBlockID]
 
               # our block offsets within the chunk, scaled
               vindex = @game.voxels.voxelIndexFromCoordinates(x, y, z)
-              @voxelChunks[vchunkKey][vindex] = ourBlockType
+              @voxelChunks[vchunkKey][vindex] = ourBlockID
 
       else
         # entirely air
