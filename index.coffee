@@ -124,7 +124,7 @@ class ClientMC
             skyLightSent: payload.skyLightSent
             groundUp: true
             data: inflated.slice(offset, offset + size)
-          )
+          ) if meta.x == -16 and meta.z == -20  # TODO: remove. for faster testing only one column
           offset += size
 
         if offset != inflated.length
@@ -132,7 +132,7 @@ class ClientMC
 
 
   addColumn: (args) ->
-    return if args.data.length == 0 # ?
+    started = window.performance.now()
 
     chunkX = args.x
     chunkZ = args.z
@@ -187,7 +187,9 @@ class ClientMC
         # entirely air
 
     # TODO: metadata,light,sky,add,biome
-
+    
+    finished = window.performance.now()
+    console.log "took #{finished - started} ms"
 
 
   missingChunk: (pos) ->
