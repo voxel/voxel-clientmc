@@ -95,8 +95,8 @@ class ClientMC
 
     # array MC block ID -> our block ID
     @translateBlockIDs = new @game.arrayType(maxId)
-    for mcID in @translateBlockIDs
-      @translateBlockIDs[mcID] = @opts.mcBlocks.default
+    for mcID in [0...@translateBlockIDs.length]
+      @translateBlockIDs[mcID] = @registry.getBlockID(@opts.mcBlocks.default)
     for mcID, ourBlockName of @opts.mcBlocks
       ourBlockID = @registry.getBlockID(ourBlockName)
       throw new Error("voxel-clientmc unrecognized block name: #{ourBlockName} for MC #{mcID}") if not ourBlockID?

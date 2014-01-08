@@ -87,7 +87,7 @@
     }
 
     ClientMC.prototype.enable = function() {
-      var maxId, mcID, ourBlockID, ourBlockName, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4,
+      var maxId, mcID, ourBlockID, ourBlockName, _i, _ref, _ref1, _ref2, _ref3, _ref4,
         _this = this;
       if ((_ref = this.game.plugins) != null) {
         _ref.disable('voxel-land');
@@ -116,10 +116,8 @@
       });
       maxId = 255;
       this.translateBlockIDs = new this.game.arrayType(maxId);
-      _ref3 = this.translateBlockIDs;
-      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-        mcID = _ref3[_i];
-        this.translateBlockIDs[mcID] = this.opts.mcBlocks["default"];
+      for (mcID = _i = 0, _ref3 = this.translateBlockIDs.length; 0 <= _ref3 ? _i < _ref3 : _i > _ref3; mcID = 0 <= _ref3 ? ++_i : --_i) {
+        this.translateBlockIDs[mcID] = this.registry.getBlockID(this.opts.mcBlocks["default"]);
       }
       _ref4 = this.opts.mcBlocks;
       for (mcID in _ref4) {
