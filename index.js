@@ -87,7 +87,7 @@
     }
 
     ClientMC.prototype.enable = function() {
-      var maxId, mcID, ourBlockID, ourBlockName, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _results,
+      var maxId, mcID, ourBlockID, ourBlockName, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4,
         _this = this;
       if ((_ref = this.game.plugins) != null) {
         _ref.disable('voxel-land');
@@ -122,16 +122,16 @@
         this.translateBlockIDs[mcID] = this.opts.mcBlocks["default"];
       }
       _ref4 = this.opts.mcBlocks;
-      _results = [];
       for (mcID in _ref4) {
         ourBlockName = _ref4[mcID];
         ourBlockID = this.registry.getBlockID(ourBlockName);
         if (ourBlockID == null) {
-          throw new Error("unrecognized block name: " + ourBlockName + " for MC " + mcID);
+          throw new Error("voxel-clientmc unrecognized block name: " + ourBlockName + " for MC " + mcID);
         }
-        _results.push(this.translateBlockIDs[mcID] = ourBlockID);
+        this.translateBlockIDs[mcID] = ourBlockID;
       }
-      return _results;
+      this.chunkBits = Math.log(this.game.chunkSize) / Math.log(2);
+      return this.chunkBits |= 0;
     };
 
     ClientMC.prototype.disable = function() {
@@ -182,7 +182,7 @@
     };
 
     ClientMC.prototype.addColumn = function(args) {
-      var chunkX, chunkY, chunkZ, column, dx, dy, dz, finished, mcBlockID, miniChunk, offset, ourBlockID, size, started, vchunkKey, vchunkXYZ, vindex, x, y, z, _base, _i, _j, _k, _l;
+      var chunkX, chunkY, chunkZ, column, dx, dy, dz, finished, mcBlockID, miniChunk, offset, ourBlockID, size, started, vchunkKey, vindex, x, y, z, _base, _i, _j, _k, _l;
       started = window.performance.now();
       chunkX = args.x;
       chunkZ = args.z;
@@ -201,8 +201,7 @@
               for (dx = _l = 0; _l < 16; dx = ++_l) {
                 x = chunkX * 16 + dx;
                 mcBlockID = miniChunk[dx + dz * 16 + dy * 16 * 16];
-                vchunkXYZ = this.game.voxels.chunkAtCoordinates(x, y, z);
-                vchunkKey = vchunkXYZ.join('|');
+                vchunkKey = (x >> this.chunkBits) + '|' + (y >> this.chunkBits) + '|' + (z >> this.chunkBits);
                 if ((_base = this.voxelChunks)[vchunkKey] == null) {
                   _base[vchunkKey] = new this.game.arrayType(this.game.chunkSize * this.game.chunkSize * this.game.chunkSize);
                 }

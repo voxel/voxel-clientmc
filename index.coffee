@@ -99,9 +99,12 @@ class ClientMC
       @translateBlockIDs[mcID] = @opts.mcBlocks.default
     for mcID, ourBlockName of @opts.mcBlocks
       ourBlockID = @registry.getBlockID(ourBlockName)
-      throw new Error("unrecognized block name: #{ourBlockName} for MC #{mcID}") if not ourBlockID?
+      throw new Error("voxel-clientmc unrecognized block name: #{ourBlockName} for MC #{mcID}") if not ourBlockID?
       @translateBlockIDs[mcID] = ourBlockID
 
+    # for chunk conversion
+    @chunkBits = Math.log(@game.chunkSize) / Math.log(2) # must be power of two
+    @chunkBits |= 0
 
   disable: () ->
     @game.voxels.removeListener 'missingChunk', @missingChunk
@@ -173,9 +176,8 @@ class ClientMC
               mcBlockID = miniChunk[dx + dz*16 + dy*16*16]
 
               # voxel-engine uses XYZ, (by default) 32x32x32
-              vchunkXYZ = @game.voxels.chunkAtCoordinates(x, y, z)  # calculates chunk coordinates
-
-              vchunkKey = vchunkXYZ.join('|')
+              # calculate chunk coordinates
+              vchunkKey = (x >> @chunkBits) + '|' + (y >> @chunkBits) + '|' + (z >> @chunkBits)
               @voxelChunks[vchunkKey] ?= new @game.arrayType(@game.chunkSize * @game.chunkSize * @game.chunkSize)
 
               ourBlockID = @translateBlockIDs[mcBlockID]
