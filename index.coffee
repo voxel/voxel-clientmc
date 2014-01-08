@@ -113,13 +113,8 @@ class ClientMC
 
   handlePacket: (name, payload) ->
     if name == 'map_chunk_bulk'
-      #console.log payload
       compressed = payload.compressedChunkData
-      #console.log 'map_chunk_bulk',compressed.length
-      #console.log 'payload.meta', payload
       return if !payload.meta?
-
-      return if @columnsAdded > 0  # TODO: remove. for faster testing decompression
 
       zlib.inflate compressed, (err, inflated) =>  # TODO: run in webworker?
         return err if err
@@ -141,7 +136,7 @@ class ClientMC
             skyLightSent: payload.skyLightSent
             groundUp: true
             data: inflated.slice(offset, offset + size)
-          ) if meta.x == -16 and meta.z == -20  # TODO: remove. for faster testing only one column
+          )
           offset += size
 
         if offset != inflated.length
@@ -149,11 +144,8 @@ class ClientMC
 
 
   addColumn: (args) ->
-    started = window.performance.now()
-
     chunkX = args.x
     chunkZ = args.z
-    console.log 'add column', chunkX, chunkZ
 
     column = []
 
@@ -192,11 +184,6 @@ class ClientMC
 
     # TODO: metadata,light,sky,add,biome
     
-    finished = window.performance.now()
-    console.log "took #{finished - started} ms"
-    @columnsAdded ?= 0
-    @columnsAdded += 1
-
   missingChunk: (pos) ->
     voxels = @voxelChunks[pos.join('|')]
     return if not voxels?

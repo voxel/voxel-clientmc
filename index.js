@@ -146,9 +146,6 @@
         if (payload.meta == null) {
           return;
         }
-        if (this.columnsAdded > 0) {
-          return;
-        }
         return zlib.inflate(compressed, function(err, inflated) {
           var i, meta, offset, size, _i, _len, _ref;
           if (err) {
@@ -160,17 +157,15 @@
           for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
             meta = _ref[i];
             size = (8192 + (payload.skyLightSent ? 2048 : 0)) * onesInShort(meta.bitMap) + 2048 * onesInShort(meta.addBitMap) + 256;
-            if (meta.x === -16 && meta.z === -20) {
-              _this.addColumn({
-                x: meta.x,
-                z: meta.z,
-                bitMap: meta.bitMap,
-                addBitMap: meta.addBitMap,
-                skyLightSent: payload.skyLightSent,
-                groundUp: true,
-                data: inflated.slice(offset, offset + size)
-              });
-            }
+            _this.addColumn({
+              x: meta.x,
+              z: meta.z,
+              bitMap: meta.bitMap,
+              addBitMap: meta.addBitMap,
+              skyLightSent: payload.skyLightSent,
+              groundUp: true,
+              data: inflated.slice(offset, offset + size)
+            });
             offset += size;
           }
           if (offset !== inflated.length) {
@@ -181,45 +176,54 @@
     };
 
     ClientMC.prototype.addColumn = function(args) {
-      var chunkX, chunkY, chunkZ, column, dx, dy, dz, finished, mcBlockID, miniChunk, offset, ourBlockID, size, started, vchunkKey, vindex, x, y, z, _base, _i, _j, _k, _l;
-      started = window.performance.now();
+      var chunkX, chunkY, chunkZ, column, dx, dy, dz, mcBlockID, miniChunk, offset, ourBlockID, size, vchunkKey, vindex, x, y, z, _i, _results;
       chunkX = args.x;
       chunkZ = args.z;
-      console.log('add column', chunkX, chunkZ);
       column = [];
       offset = 0;
       size = 4096;
+      _results = [];
       for (chunkY = _i = 0; _i < 16; chunkY = ++_i) {
         if (args.bitMap & (1 << chunkY)) {
           miniChunk = args.data.slice(offset, offset + size);
           offset += size;
-          for (dy = _j = 0; _j < 16; dy = ++_j) {
-            y = chunkY * 16 + dy;
-            for (dz = _k = 0; _k < 16; dz = ++_k) {
-              z = chunkZ * 16 + dz;
-              for (dx = _l = 0; _l < 16; dx = ++_l) {
-                x = chunkX * 16 + dx;
-                mcBlockID = miniChunk[dx + dz * 16 + dy * 16 * 16];
-                vchunkKey = (x >> this.chunkBits) + '|' + (y >> this.chunkBits) + '|' + (z >> this.chunkBits);
-                if ((_base = this.voxelChunks)[vchunkKey] == null) {
-                  _base[vchunkKey] = new this.game.arrayType(this.game.chunkSize * this.game.chunkSize * this.game.chunkSize);
+          _results.push((function() {
+            var _j, _results1;
+            _results1 = [];
+            for (dy = _j = 0; _j < 16; dy = ++_j) {
+              y = chunkY * 16 + dy;
+              _results1.push((function() {
+                var _k, _results2;
+                _results2 = [];
+                for (dz = _k = 0; _k < 16; dz = ++_k) {
+                  z = chunkZ * 16 + dz;
+                  _results2.push((function() {
+                    var _base, _l, _results3;
+                    _results3 = [];
+                    for (dx = _l = 0; _l < 16; dx = ++_l) {
+                      x = chunkX * 16 + dx;
+                      mcBlockID = miniChunk[dx + dz * 16 + dy * 16 * 16];
+                      vchunkKey = (x >> this.chunkBits) + '|' + (y >> this.chunkBits) + '|' + (z >> this.chunkBits);
+                      if ((_base = this.voxelChunks)[vchunkKey] == null) {
+                        _base[vchunkKey] = new this.game.arrayType(this.game.chunkSize * this.game.chunkSize * this.game.chunkSize);
+                      }
+                      ourBlockID = this.translateBlockIDs[mcBlockID];
+                      vindex = (x & this.chunkMask) + ((y & this.chunkMask) << this.chunkBits) + ((z & this.chunkMask) << this.chunkBits * 2);
+                      _results3.push(this.voxelChunks[vchunkKey][vindex] = ourBlockID);
+                    }
+                    return _results3;
+                  }).call(this));
                 }
-                ourBlockID = this.translateBlockIDs[mcBlockID];
-                vindex = (x & this.chunkMask) + ((y & this.chunkMask) << this.chunkBits) + ((z & this.chunkMask) << this.chunkBits * 2);
-                this.voxelChunks[vchunkKey][vindex] = ourBlockID;
-              }
+                return _results2;
+              }).call(this));
             }
-          }
+            return _results1;
+          }).call(this));
         } else {
 
         }
       }
-      finished = window.performance.now();
-      console.log("took " + (finished - started) + " ms");
-      if (this.columnsAdded == null) {
-        this.columnsAdded = 0;
-      }
-      return this.columnsAdded += 1;
+      return _results;
     };
 
     ClientMC.prototype.missingChunk = function(pos) {
