@@ -162,6 +162,10 @@
       } else if (name === 'player_position') {
         console.log('player pos and look', payload);
         return (_ref1 = this.game.plugins) != null ? _ref1.get('voxel-player').moveTo(payload.x, payload.y, payload.z) : void 0;
+      } else if (name === 'kicked') {
+        return window.alert("Disconnected from server: " + payload.reason);
+      } else if (name === 'chat') {
+        return console.log("Server chat: " + (JSON.stringify(payload)));
       }
     };
 

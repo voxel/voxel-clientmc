@@ -153,6 +153,11 @@ class ClientMC
       console.log 'player pos and look', payload
       @game.plugins?.get('voxel-player').moveTo payload.x, payload.y, payload.z
 
+    else if name == 'kicked'
+      window.alert "Disconnected from server: #{payload.reason}"  # TODO: console, also for chat
+    else if name == 'chat'
+      console.log "Server chat: #{JSON.stringify payload}" # TODO: tellraw2dom
+
 
   onDecompressed: (ev) ->
     console.log 'onDecompressed',ev
