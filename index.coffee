@@ -98,6 +98,7 @@ class ClientMC
     maxId = 255 # TODO: 4096?
 
     # array MC block ID -> our block ID
+    # TODO: also support .metadata (MC block ID = 12-bits, meta = 4-bits, total 16-bits -> ours 16 bit)
     @translateBlockIDs = new @game.arrayType(maxId)
     for mcID in [0...@translateBlockIDs.length]
       @translateBlockIDs[mcID] = @registry.getBlockID(@opts.mcBlocks.default)
@@ -138,8 +139,15 @@ class ClientMC
    
     else if name == 'spawn_position'
       # move to spawn TODO: this might only reset the compass 
+      console.log 'Spawn at ',payload
       @game.plugins?.get('voxel-player').moveTo payload.x, payload.y, payload.z
       #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
+    
+    else if name == 'block_change'
+      console.log 'block_change',payload
+      blockID = @translateBlockIDs[payload.type] #  TODO: .metadata
+      @game.setBlock [payload.x, payload.y, payload.z], blockID
+
 
   onDecompressed: (ev) ->
     console.log 'onDecompressed',ev
