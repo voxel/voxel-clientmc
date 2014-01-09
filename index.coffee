@@ -148,6 +148,11 @@ class ClientMC
       blockID = @translateBlockIDs[payload.type] #  TODO: .metadata
       @game.setBlock [payload.x, payload.y, payload.z], blockID
 
+    else if name == 'player_position'
+      # TODO, yaw, pitch. to convert see http://wiki.vg/Protocol#Player_Position_And_Look
+      console.log 'player pos and look', payload
+      @game.plugins?.get('voxel-player').moveTo payload.x, payload.y, payload.z
+
 
   onDecompressed: (ev) ->
     console.log 'onDecompressed',ev

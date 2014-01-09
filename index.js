@@ -140,7 +140,7 @@
     };
 
     ClientMC.prototype.handlePacket = function(name, payload) {
-      var blockID, id, thisArrayBuffer, _ref;
+      var blockID, id, thisArrayBuffer, _ref, _ref1;
       if (name === 'map_chunk_bulk') {
         console.log('payload.data.compressedChunkData ', payload.data.compressedChunkData.length, payload.data.compressedChunkData);
         thisArrayBuffer = payload.data.compressedChunkData.buffer.slice(payload.data.compressedChunkData.byteOffset, payload.data.compressedChunkData.byteOffset + payload.data.compressedChunkData.length);
@@ -159,6 +159,9 @@
         console.log('block_change', payload);
         blockID = this.translateBlockIDs[payload.type];
         return this.game.setBlock([payload.x, payload.y, payload.z], blockID);
+      } else if (name === 'player_position') {
+        console.log('player pos and look', payload);
+        return (_ref1 = this.game.plugins) != null ? _ref1.get('voxel-player').moveTo(payload.x, payload.y, payload.z) : void 0;
       }
     };
 
