@@ -30,7 +30,7 @@
       console.log('protocol parse error: ' + JSON.stringify(result.error));
       return void 0;
     }
-    payload = result.results.data;
+    payload = result.results;
     id = result.results.id;
     name = minecraft_protocol.protocol.packetNames[minecraft_protocol.protocol.states.PLAY].toClient[id];
     return {
@@ -87,16 +87,13 @@
     }
 
     ClientMC.prototype.enable = function() {
-      var maxId, mcID, ourBlockID, ourBlockName, _i, _ref, _ref1, _ref2, _ref3, _ref4,
+      var maxId, mcID, ourBlockID, ourBlockName, _i, _ref, _ref1, _ref2, _ref3,
         _this = this;
       if ((_ref = this.game.plugins) != null) {
         _ref.disable('voxel-land');
       }
       if ((_ref1 = this.game.plugins) != null) {
-        _ref1.get('voxel-player').moveTo(-251, 81, -309);
-      }
-      if ((_ref2 = this.game.plugins) != null) {
-        _ref2.enable('voxel-fly');
+        _ref1.enable('voxel-fly');
       }
       this.ws = websocket_stream(this.opts.url, {
         type: Uint8Array
@@ -120,12 +117,12 @@
       this.packetPayloadsNextID = 0;
       maxId = 255;
       this.translateBlockIDs = new this.game.arrayType(maxId);
-      for (mcID = _i = 0, _ref3 = this.translateBlockIDs.length; 0 <= _ref3 ? _i < _ref3 : _i > _ref3; mcID = 0 <= _ref3 ? ++_i : --_i) {
+      for (mcID = _i = 0, _ref2 = this.translateBlockIDs.length; 0 <= _ref2 ? _i < _ref2 : _i > _ref2; mcID = 0 <= _ref2 ? ++_i : --_i) {
         this.translateBlockIDs[mcID] = this.registry.getBlockID(this.opts.mcBlocks["default"]);
       }
-      _ref4 = this.opts.mcBlocks;
-      for (mcID in _ref4) {
-        ourBlockName = _ref4[mcID];
+      _ref3 = this.opts.mcBlocks;
+      for (mcID in _ref3) {
+        ourBlockName = _ref3[mcID];
         ourBlockID = this.registry.getBlockID(ourBlockName);
         if (ourBlockID == null) {
           throw new Error("voxel-clientmc unrecognized block name: " + ourBlockName + " for MC " + mcID);
@@ -143,21 +140,20 @@
     };
 
     ClientMC.prototype.handlePacket = function(name, payload) {
-      var id, thisArrayBuffer;
+      var id, thisArrayBuffer, _ref;
       if (name === 'map_chunk_bulk') {
-        if (payload.meta == null) {
-          return;
-        }
-        console.log('payload.compressedChunkData ', payload.compressedChunkData.length, payload.compressedChunkData);
-        thisArrayBuffer = payload.compressedChunkData.buffer.slice(payload.compressedChunkData.byteOffset, payload.compressedChunkData.byteOffset + payload.compressedChunkData.length);
+        console.log('payload.data.compressedChunkData ', payload.data.compressedChunkData.length, payload.data.compressedChunkData);
+        thisArrayBuffer = payload.data.compressedChunkData.buffer.slice(payload.data.compressedChunkData.byteOffset, payload.data.compressedChunkData.byteOffset + payload.data.compressedChunkData.length);
         id = this.packetPayloadsNextID;
-        this.packetPayloadsPending[id] = payload;
+        this.packetPayloadsPending[id] = payload.data;
         this.packetPayloadsNextID += 1;
         console.log('sending compressedBuffer ', thisArrayBuffer);
         return this.zlib_worker.postMessage({
           id: id,
           compressed: thisArrayBuffer
         }, [thisArrayBuffer]);
+      } else if (name === 'spawn_position') {
+        return (_ref = this.game.plugins) != null ? _ref.get('voxel-player').moveTo(payload.x, payload.y, payload.z) : void 0;
       }
     };
 

@@ -25,11 +25,11 @@ decodePacket = (data) -> # based on https://github.com/deathcap/wsmc/tree/master
     console.log('protocol parse error: ' + JSON.stringify(result.error))
     return undefined
 
-  payload = result.results.data
+  payload = result.results
   id = result.results.id
   name = minecraft_protocol.protocol.packetNames[minecraft_protocol.protocol.states.PLAY].toClient[id]
 
-  return {name:name, id:id, payload:payload};
+  return {name:name, id:id, payload:payload}
 
 
 onesInShort = (n) ->
@@ -71,7 +71,7 @@ class ClientMC
   enable: () ->
     @game.plugins?.disable('voxel-land')    # also provides chunks, use ours instead
     #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
-    @game.plugins?.get('voxel-player').moveTo -251, 81, -309
+    #@game.plugins?.get('voxel-player').moveTo -251, 81, -309
     @game.plugins?.enable('voxel-fly')
 
     @ws = websocket_stream(@opts.url, {type: Uint8Array})
@@ -117,14 +117,13 @@ class ClientMC
 
   handlePacket: (name, payload) ->
     if name == 'map_chunk_bulk'
-      return if !payload.meta?
-      console.log 'payload.compressedChunkData ',payload.compressedChunkData.length,payload.compressedChunkData
+      console.log 'payload.data.compressedChunkData ',payload.data.compressedChunkData.length,payload.data.compressedChunkData
 
       # copies ArrayBuffer, since .buffer refers to the entire backing storage! (vs 
       # only the compressedChunkData we want to compress). TODO: fix this hack
-      thisArrayBuffer = payload.compressedChunkData.buffer.slice(
-        payload.compressedChunkData.byteOffset,
-        payload.compressedChunkData.byteOffset + payload.compressedChunkData.length)
+      thisArrayBuffer = payload.data.compressedChunkData.buffer.slice(
+        payload.data.compressedChunkData.byteOffset,
+        payload.data.compressedChunkData.byteOffset + payload.data.compressedChunkData.length)
 
       #thisArrayView = new Uint8Array(thisArrayBuffer)
       #window.Buffer = Buffer
@@ -132,11 +131,15 @@ class ClientMC
       #  console.log 'NON-WORKER decomp=',err+'',decompressed
 
       id = @packetPayloadsNextID
-      @packetPayloadsPending[id] = payload  # save for continued processing in onDecompressed
+      @packetPayloadsPending[id] = payload.data  # save for continued processing in onDecompressed
       @packetPayloadsNextID += 1
       console.log 'sending compressedBuffer ',thisArrayBuffer
       @zlib_worker.postMessage {id:id, compressed:thisArrayBuffer}, [thisArrayBuffer]
-    
+   
+    else if name == 'spawn_position'
+      # move to spawn TODO: this might only reset the compass 
+      @game.plugins?.get('voxel-player').moveTo payload.x, payload.y, payload.z
+      #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
 
   onDecompressed: (ev) ->
     console.log 'onDecompressed',ev
