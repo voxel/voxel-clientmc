@@ -14,8 +14,10 @@
       compressedArrayView = new Uint8Array(compressedArrayBuffer);
       compressedBuffer = new Buffer(compressedArrayView);
       id = ev.data.id;
+      console.log('worker decomp start ' + id + ' len' + compressedBuffer.length);
       return zlib.inflate(compressedBuffer, function(err, decompressed) {
         var decompressedBuffer;
+        console.log('worker err' + err);
         if (err) {
           _this.postMessage({
             id: id,

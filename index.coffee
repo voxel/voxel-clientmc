@@ -2,7 +2,6 @@ websocket_stream = require 'websocket-stream'
 minecraft_protocol = require 'minecraft-protocol'
 ever = require 'ever'
 webworkify = require 'webworkify'
-tic = (require 'tic')()
 
 module.exports = (game, opts) ->
   return new ClientMC(game, opts)
@@ -116,11 +115,10 @@ class ClientMC
   disable: () ->
     @game.voxels.removeListener 'missingChunk', @missingChunk
     @ws.end()
-    @clearInterval?()
 
   handlePacket: (name, payload) ->
     if name == 'map_chunk_bulk'
-      #console.log 'payload.data.compressedChunkData ',payload.data.compressedChunkData.length,payload.data.compressedChunkData
+      console.log 'payload.data.compressedChunkData ',payload.data.compressedChunkData.length,payload.data.compressedChunkData
 
       # copies ArrayBuffer, since .buffer refers to the entire backing storage! (vs 
       # only the compressedChunkData we want to compress). TODO: fix this hack
@@ -136,7 +134,7 @@ class ClientMC
       id = @packetPayloadsNextID
       @packetPayloadsPending[id] = payload.data  # save for continued processing in onDecompressed
       @packetPayloadsNextID += 1
-      #console.log 'sending compressedBuffer ',thisArrayBuffer
+      console.log 'sending compressedBuffer ',thisArrayBuffer
       @zlib_worker.postMessage {id:id, compressed:thisArrayBuffer}, [thisArrayBuffer]
    
     else if name == 'spawn_position'
@@ -144,8 +142,6 @@ class ClientMC
       console.log 'Spawn at ',payload
       @game.plugins?.get('voxel-player').moveTo payload.x, payload.y, payload.z
       #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
-      
-      @setupPositionUpdates()  # TODO: now or when?
     
     else if name == 'block_change'
       console.log 'block_change',payload
@@ -162,25 +158,9 @@ class ClientMC
     else if name == 'chat'
       console.log "Server chat: #{JSON.stringify payload}" # TODO: tellraw2dom
 
-  # setup timer to send player position updates to the server
-  setupPositionUpdates: () ->
-    @game.on 'tick', (dt) -> tic.tick(dt)  # TODO: not sure if this is the best way to hook into the main loop..
-
-    # MC requires every 50 ms (server = 20 ticks/second)
-    @clearInterval = tic.interval @sendPositionUpdate.bind(@), 50
-
-  sendPositionUpdate: () ->
-    pos = @game.plugins?.get('voxel-player').yaw
-    return if not pos?
-
-    @sendPacket 'player_position', {x:pos.x, y:pos.y, z:pos.z, stance:pos.y + 1, onGround:true}
-
-  sendPacket: (name, params) ->
-    data = minecraft_protocol.protocol.createPacketBuffer name, params
-    @ws.write(data)  # TODO: handle error
 
   onDecompressed: (ev) ->
-    #console.log 'onDecompressed',ev
+    console.log 'onDecompressed',ev
 
     id = ev.data.id
     payload = @packetPayloadsPending[id]
