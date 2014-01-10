@@ -115,6 +115,7 @@ class ClientMC
   disable: () ->
     @game.voxels.removeListener 'missingChunk', @missingChunk
     @ws.end()
+    @clearInterval?()
 
   handlePacket: (name, payload) ->
     if name == 'map_chunk_bulk'
@@ -142,6 +143,8 @@ class ClientMC
       console.log 'Spawn at ',payload
       @game.plugins?.get('voxel-player').moveTo payload.x, payload.y, payload.z
       #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
+      
+      @setupPositionUpdates()  # TODO: now or when?
     
     else if name == 'block_change'
       console.log 'block_change',payload
@@ -158,6 +161,20 @@ class ClientMC
     else if name == 'chat'
       console.log "Server chat: #{JSON.stringify payload}" # TODO: tellraw2dom
 
+  # setup timer to send player position updates to the server
+  setupPositionUpdates: () ->
+    # MC requires every 50 ms (server = 20 ticks/second)
+    @clearInterval = @game.setInterval @sendPositionUpdate.bind(@), 50
+
+  sendPositionUpdate: () ->
+    pos = @game.plugins?.get('voxel-player').yaw.position
+    return if not pos?
+
+    @sendPacket 'player_position', {x:pos.x, y:pos.y, z:pos.z, stance:pos.y + 1, onGround:true}
+
+  sendPacket: (name, params) ->
+    data = minecraft_protocol.protocol.createPacketBuffer name, params
+    @ws.write(data)  # TODO: handle error
 
   onDecompressed: (ev) ->
     console.log 'onDecompressed',ev

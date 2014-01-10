@@ -136,7 +136,8 @@
 
     ClientMC.prototype.disable = function() {
       this.game.voxels.removeListener('missingChunk', this.missingChunk);
-      return this.ws.end();
+      this.ws.end();
+      return typeof this.clearInterval === "function" ? this.clearInterval() : void 0;
     };
 
     ClientMC.prototype.handlePacket = function(name, payload) {
@@ -154,7 +155,10 @@
         }, [thisArrayBuffer]);
       } else if (name === 'spawn_position') {
         console.log('Spawn at ', payload);
-        return (_ref = this.game.plugins) != null ? _ref.get('voxel-player').moveTo(payload.x, payload.y, payload.z) : void 0;
+        if ((_ref = this.game.plugins) != null) {
+          _ref.get('voxel-player').moveTo(payload.x, payload.y, payload.z);
+        }
+        return this.setupPositionUpdates();
       } else if (name === 'block_change') {
         console.log('block_change', payload);
         blockID = this.translateBlockIDs[payload.type];
@@ -167,6 +171,31 @@
       } else if (name === 'chat') {
         return console.log("Server chat: " + (JSON.stringify(payload)));
       }
+    };
+
+    ClientMC.prototype.setupPositionUpdates = function() {
+      return this.clearInterval = this.game.setInterval(this.sendPositionUpdate.bind(this), 50);
+    };
+
+    ClientMC.prototype.sendPositionUpdate = function() {
+      var pos, _ref;
+      pos = (_ref = this.game.plugins) != null ? _ref.get('voxel-player').yaw.position : void 0;
+      if (pos == null) {
+        return;
+      }
+      return this.sendPacket('player_position', {
+        x: pos.x,
+        y: pos.y,
+        z: pos.z,
+        stance: pos.y + 1,
+        onGround: true
+      });
+    };
+
+    ClientMC.prototype.sendPacket = function(name, params) {
+      var data;
+      data = minecraft_protocol.protocol.createPacketBuffer(name, params);
+      return this.ws.write(data);
     };
 
     ClientMC.prototype.onDecompressed = function(ev) {
