@@ -17,7 +17,7 @@
   };
 
   module.exports.pluginInfo = {
-    loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry']
+    loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry', 'voxel-console']
   };
 
   decodePacket = function(data) {
@@ -90,7 +90,7 @@
     }
 
     ClientMC.prototype.enable = function() {
-      var maxId, mcID, ourBlockID, ourBlockName, _i, _ref, _ref1, _ref2, _ref3,
+      var maxId, mcID, ourBlockID, ourBlockName, _i, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6,
         _this = this;
       if ((_ref = this.game.plugins) != null) {
         _ref.disable('voxel-land');
@@ -104,7 +104,9 @@
       this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
       this.voxelChunks = {};
       this.ws.on('error', function(err) {
-        return console.log('WebSocket error', err);
+        var _ref2;
+        console.log('WebSocket error', err);
+        return (_ref2 = this.game.plugins) != null ? _ref2.disable('voxel-clientmc') : void 0;
       });
       this.ws.on('data', function(data) {
         var packet;
@@ -114,18 +116,27 @@
         }
         return _this.handlePacket(packet.name, packet.payload);
       });
+      if ((_ref2 = this.game.plugins) != null) {
+        if ((_ref3 = _ref2.get('voxel-console')) != null) {
+          if ((_ref4 = _ref3.widget) != null) {
+            _ref4.on('input', this.onConsoleInput = function(text) {
+              return _this.sendChat(text);
+            });
+          }
+        }
+      }
       this.zlib_worker = webworkify(require('./zlib_worker.js'));
       ever(this.zlib_worker).on('message', this.onDecompressed.bind(this));
       this.packetPayloadsPending = {};
       this.packetPayloadsNextID = 0;
       maxId = 255;
       this.translateBlockIDs = new this.game.arrayType(maxId);
-      for (mcID = _i = 0, _ref2 = this.translateBlockIDs.length; 0 <= _ref2 ? _i < _ref2 : _i > _ref2; mcID = 0 <= _ref2 ? ++_i : --_i) {
+      for (mcID = _i = 0, _ref5 = this.translateBlockIDs.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; mcID = 0 <= _ref5 ? ++_i : --_i) {
         this.translateBlockIDs[mcID] = this.registry.getBlockID(this.opts.mcBlocks["default"]);
       }
-      _ref3 = this.opts.mcBlocks;
-      for (mcID in _ref3) {
-        ourBlockName = _ref3[mcID];
+      _ref6 = this.opts.mcBlocks;
+      for (mcID in _ref6) {
+        ourBlockName = _ref6[mcID];
         ourBlockID = this.registry.getBlockID(ourBlockName);
         if (ourBlockID == null) {
           throw new Error("voxel-clientmc unrecognized block name: " + ourBlockName + " for MC " + mcID);
@@ -138,9 +149,14 @@
     };
 
     ClientMC.prototype.disable = function() {
+      var _ref;
+      console.log('voxel-clientmc disablingd');
       this.game.voxels.removeListener('missingChunk', this.missingChunk);
+      if ((_ref = this.game.plugins) != null) {
+        _ref.get('voxel-console').widget.removeListener('input', this.onConsoleInput);
+      }
       this.ws.end();
-      return typeof this.clearInterval === "function" ? this.clearInterval() : void 0;
+      return typeof this.clearPositionUpdateTimer === "function" ? this.clearPositionUpdateTimer() : void 0;
     };
 
     ClientMC.prototype.handlePacket = function(name, payload) {
@@ -180,8 +196,14 @@
       }
     };
 
+    ClientMC.prototype.sendChat = function(text) {
+      return this.sendPacket('chat_message', {
+        message: text
+      });
+    };
+
     ClientMC.prototype.setupPositionUpdates = function() {
-      return this.clearInterval = this.game.setInterval(this.sendPositionUpdate.bind(this), 50);
+      return this.clearPositionUpdateTimer = this.game.setInterval(this.sendPositionUpdate.bind(this), 50);
     };
 
     ClientMC.prototype.sendPositionUpdate = function() {

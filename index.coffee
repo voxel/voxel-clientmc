@@ -8,7 +8,7 @@ module.exports = (game, opts) ->
   return new ClientMC(game, opts)
 
 module.exports.pluginInfo =
-  loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry']
+  loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry', 'voxel-console']
 
 
 decodePacket = (data) -> # based on https://github.com/deathcap/wsmc/tree/master/examples/mcwebchat
@@ -83,8 +83,10 @@ class ClientMC
 
     @voxelChunks = {}
 
+    # WebSocket to server proxy (wsmc)
     @ws.on 'error', (err) ->
       console.log 'WebSocket error', err
+      @game.plugins?.disable('voxel-clientmc')
 
     @ws.on 'data', (data) =>
       packet = decodePacket(data)
@@ -93,6 +95,10 @@ class ClientMC
 
       @handlePacket packet.name, packet.payload
 
+    @game.plugins?.get('voxel-console')?.widget?.on 'input', @onConsoleInput = (text) =>
+      @sendChat(text)
+
+    # chunk decompression
     @zlib_worker = webworkify(require('./zlib_worker.js'))
     ever(@zlib_worker).on 'message', @onDecompressed.bind(@)
     @packetPayloadsPending = {}
@@ -116,9 +122,11 @@ class ClientMC
     @chunkMask = (1 << @chunkBits) - 1
 
   disable: () ->
+    console.log 'voxel-clientmc disablingd'
     @game.voxels.removeListener 'missingChunk', @missingChunk
+    @game.plugins?.get('voxel-console').widget.removeListener 'input', @onConsoleInput
     @ws.end()
-    @clearInterval?()
+    @clearPositionUpdateTimer?()
 
   handlePacket: (name, payload) ->
     if name == 'map_chunk_bulk'
@@ -169,10 +177,13 @@ class ClientMC
       # log formatted message
       @game.plugins?.get('voxel-console').logNode tellraw2dom(payload.message)
 
+  sendChat: (text) ->
+    @sendPacket 'chat_message', {message: text}
+
   # setup timer to send player position updates to the server
   setupPositionUpdates: () ->
     # MC requires every 50 ms (server = 20 ticks/second)
-    @clearInterval = @game.setInterval @sendPositionUpdate.bind(@), 50
+    @clearPositionUpdateTimer = @game.setInterval @sendPositionUpdate.bind(@), 50
 
   sendPositionUpdate: () ->
     pos = @game.plugins?.get('voxel-player').yaw.position
