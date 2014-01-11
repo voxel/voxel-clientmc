@@ -2,6 +2,7 @@ websocket_stream = require 'websocket-stream'
 minecraft_protocol = require 'minecraft-protocol'
 ever = require 'ever'
 webworkify = require 'webworkify'
+tellraw2dom = require 'tellraw2dom'
 
 module.exports = (game, opts) ->
   return new ClientMC(game, opts)
@@ -165,7 +166,8 @@ class ClientMC
     else if name == 'kicked'
       window.alert "Disconnected from server: #{payload.reason}"  # TODO: console, also for chat
     else if name == 'chat'
-      console.log "Server chat: #{JSON.stringify payload}" # TODO: tellraw2dom
+      # log formatted message
+      @game.plugins?.get('voxel-console').logNode tellraw2dom(payload.message)
 
   # setup timer to send player position updates to the server
   setupPositionUpdates: () ->
