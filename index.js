@@ -178,16 +178,17 @@
     };
 
     ClientMC.prototype.sendPositionUpdate = function() {
-      var pos, _ref;
+      var mcPlayerHeight, pos, _ref;
       pos = (_ref = this.game.plugins) != null ? _ref.get('voxel-player').yaw.position : void 0;
       if (pos == null) {
         return;
       }
+      mcPlayerHeight = 1.74;
       return this.sendPacket('player_position', {
         x: pos.x,
         y: pos.y,
         z: pos.z,
-        stance: pos.y + 1,
+        stance: pos.y + mcPlayerHeight,
         onGround: true
       });
     };

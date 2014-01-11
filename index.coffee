@@ -170,7 +170,8 @@ class ClientMC
     pos = @game.plugins?.get('voxel-player').yaw.position
     return if not pos?
 
-    @sendPacket 'player_position', {x:pos.x, y:pos.y, z:pos.z, stance:pos.y + 1, onGround:true}
+    mcPlayerHeight = 1.74 # from https://github.com/superjoe30/mineflayer/blob/4daa1f8a1f4282755b723df4bb748f6602784744/lib/plugins/physics.js#L23 - tested with a binary search
+    @sendPacket 'player_position', {x:pos.x, y:pos.y, z:pos.z, stance:pos.y + mcPlayerHeight, onGround:true}
 
   sendPacket: (name, params) ->
     data = minecraft_protocol.protocol.createPacketBuffer name, params
