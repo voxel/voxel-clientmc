@@ -83,6 +83,7 @@
           "default": 'brick'
         };
       }
+      this.mcPlayerHeight = 1.74;
       this.enable();
     }
 
@@ -141,7 +142,7 @@
     };
 
     ClientMC.prototype.handlePacket = function(name, payload) {
-      var blockID, id, thisArrayBuffer, _ref, _ref1;
+      var blockID, id, ourY, thisArrayBuffer, _ref, _ref1;
       if (name === 'map_chunk_bulk') {
         console.log('payload.data.compressedChunkData ', payload.data.compressedChunkData.length, payload.data.compressedChunkData);
         thisArrayBuffer = payload.data.compressedChunkData.buffer.slice(payload.data.compressedChunkData.byteOffset, payload.data.compressedChunkData.byteOffset + payload.data.compressedChunkData.length);
@@ -165,7 +166,11 @@
         return this.game.setBlock([payload.x, payload.y, payload.z], blockID);
       } else if (name === 'player_position') {
         console.log('player pos and look', payload);
-        return (_ref1 = this.game.plugins) != null ? _ref1.get('voxel-player').moveTo(payload.x, payload.y, payload.z) : void 0;
+        ourY = payload.y - 1.62;
+        if ((_ref1 = this.game.plugins) != null) {
+          _ref1.get('voxel-player').moveTo(payload.x, ourY, payload.z);
+        }
+        return this.sendPacket('player_position', payload);
       } else if (name === 'kicked') {
         return window.alert("Disconnected from server: " + payload.reason);
       } else if (name === 'chat') {
@@ -178,18 +183,22 @@
     };
 
     ClientMC.prototype.sendPositionUpdate = function() {
-      var mcPlayerHeight, pos, _ref;
+      var onGround, pos, stance, x, y, z, _ref;
       pos = (_ref = this.game.plugins) != null ? _ref.get('voxel-player').yaw.position : void 0;
       if (pos == null) {
         return;
       }
-      mcPlayerHeight = 1.74;
+      x = pos.x;
+      y = pos.y + 1;
+      z = pos.z;
+      stance = y + this.mcPlayerHeight;
+      onGround = true;
       return this.sendPacket('player_position', {
-        x: pos.x,
-        y: pos.y,
-        z: pos.z,
-        stance: pos.y + mcPlayerHeight,
-        onGround: true
+        x: x,
+        y: y,
+        z: z,
+        stance: stance,
+        onGround: onGround
       });
     };
 

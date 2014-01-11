@@ -65,6 +65,8 @@ class ClientMC
       162: 'logOak'
 
       default: 'brick'
+    
+    @mcPlayerHeight = 1.74 # from https://github.com/superjoe30/mineflayer/blob/4daa1f8a1f4282755b723df4bb748f6602784744/lib/plugins/physics.js#L23 - tested with a binary search
 
     @enable()
 
@@ -154,7 +156,11 @@ class ClientMC
     else if name == 'player_position'
       # TODO, yaw, pitch. to convert see http://wiki.vg/Protocol#Player_Position_And_Look
       console.log 'player pos and look', payload
-      @game.plugins?.get('voxel-player').moveTo payload.x, payload.y, payload.z
+      ourY= payload.y - 1.62 # empirical  TODO: not playerHeight?
+      @game.plugins?.get('voxel-player').moveTo payload.x, ourY, payload.z
+
+      # the "apology"
+      @sendPacket 'player_position', payload
 
     else if name == 'kicked'
       window.alert "Disconnected from server: #{payload.reason}"  # TODO: console, also for chat
@@ -170,8 +176,14 @@ class ClientMC
     pos = @game.plugins?.get('voxel-player').yaw.position
     return if not pos?
 
-    mcPlayerHeight = 1.74 # from https://github.com/superjoe30/mineflayer/blob/4daa1f8a1f4282755b723df4bb748f6602784744/lib/plugins/physics.js#L23 - tested with a binary search
-    @sendPacket 'player_position', {x:pos.x, y:pos.y, z:pos.z, stance:pos.y + mcPlayerHeight, onGround:true}
+    x = pos.x
+    y = pos.y + 1
+    z = pos.z
+
+    stance = y + @mcPlayerHeight
+    onGround = true
+
+    @sendPacket 'player_position', {x, y, z, stance, onGround}
 
   sendPacket: (name, params) ->
     data = minecraft_protocol.protocol.createPacketBuffer name, params
