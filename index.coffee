@@ -84,8 +84,11 @@ class ClientMC
     @voxelChunks = {}
 
     # WebSocket to server proxy (wsmc)
-    @ws.on 'error', (err) ->
+    @ws.on 'error', (err) =>
       console.log 'WebSocket error', err
+      @game.plugins?.disable('voxel-clientmc')
+    @ws.on 'end', () =>
+      console.log 'WebSocket end'
       @game.plugins?.disable('voxel-clientmc')
 
     @ws.on 'data', (data) =>

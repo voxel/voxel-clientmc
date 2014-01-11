@@ -106,7 +106,12 @@
       this.ws.on('error', function(err) {
         var _ref2;
         console.log('WebSocket error', err);
-        return (_ref2 = this.game.plugins) != null ? _ref2.disable('voxel-clientmc') : void 0;
+        return (_ref2 = _this.game.plugins) != null ? _ref2.disable('voxel-clientmc') : void 0;
+      });
+      this.ws.on('end', function() {
+        var _ref2;
+        console.log('WebSocket end');
+        return (_ref2 = _this.game.plugins) != null ? _ref2.disable('voxel-clientmc') : void 0;
       });
       this.ws.on('data', function(data) {
         var packet;
