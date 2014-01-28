@@ -3,6 +3,7 @@ minecraft_protocol = require 'minecraft-protocol'
 ever = require 'ever'
 webworkify = require 'webworkify'
 tellraw2dom = require 'tellraw2dom'
+{popCount} = require 'bit-twiddle'
 
 module.exports = (game, opts) ->
   return new ClientMC(game, opts)
@@ -32,13 +33,6 @@ decodePacket = (data) -> # based on https://github.com/deathcap/wsmc/tree/master
 
   return {name:name, id:id, payload:payload}
 
-
-onesInShort = (n) ->
-  n = n & 0xffff
-  count = 0
-  for i in [0...16]
-    count += +!!((1 << i) & n)
-  count
 
 class ClientMC
   constructor: (@game, @opts) ->
@@ -225,8 +219,8 @@ class ClientMC
     offset = meta = size = 0
     for meta, i in payload.meta
       size = (8192 + (if payload.skyLightSent then 2048 else 0)) *
-        onesInShort(meta.bitMap) +
-        2048 * onesInShort(meta.addBitMap) + 256
+        popCount(meta.bitMap) +
+        2048 * popCount(meta.addBitMap) + 256
       @addColumn(
         x: meta.x
         z: meta.z
