@@ -54,7 +54,7 @@
         if ((_ref = (_ref1 = this.game.plugins) != null ? _ref1.get('voxel-registry') : void 0) != null) {
           return _ref;
         } else {
-          throw 'voxel-clientmc requires voxel-registry plugin';
+          throw new Error('voxel-clientmc requires voxel-registry plugin');
         }
       }).call(this);
       if ((_base = this.opts).url == null) {

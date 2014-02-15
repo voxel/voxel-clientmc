@@ -36,7 +36,7 @@ decodePacket = (data) -> # based on https://github.com/deathcap/wsmc/tree/master
 
 class ClientMC
   constructor: (@game, @opts) ->
-    @registry = @game.plugins?.get('voxel-registry') ? throw 'voxel-clientmc requires voxel-registry plugin'
+    @registry = @game.plugins?.get('voxel-registry') ? throw new Error('voxel-clientmc requires voxel-registry plugin')
 
     @opts.url ?= 'ws://localhost:1234'
 
