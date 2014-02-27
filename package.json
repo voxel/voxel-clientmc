@@ -11,7 +11,7 @@
   ],
   "dependencies": {
     "ever": "0.0.3",
-    "minecraft-protocol": "git://github.com/deathcap/node-minecraft-protocol.git#2257c049eb49564ee981dd4c5312286a0befeb65",
+    "minecraft-protocol": "git://github.com/deathcap/node-minecraft-protocol.git#3c8ad5a0883dfb5126523ee9c4f79c3c020b1c5c",
     "zlib-browserify": "0.0.3",
     "websocket-stream": "~0.4.0",
     "tellraw2dom": "0.0.4",
