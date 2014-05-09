@@ -136,12 +136,12 @@
       maxId = 255;
       this.translateBlockIDs = new this.game.arrayType(maxId);
       for (mcID = _i = 0, _ref5 = this.translateBlockIDs.length; 0 <= _ref5 ? _i < _ref5 : _i > _ref5; mcID = 0 <= _ref5 ? ++_i : --_i) {
-        this.translateBlockIDs[mcID] = this.registry.getBlockID(this.opts.mcBlocks["default"]);
+        this.translateBlockIDs[mcID] = this.registry.getBlockIndex(this.opts.mcBlocks["default"]);
       }
       _ref6 = this.opts.mcBlocks;
       for (mcID in _ref6) {
         ourBlockName = _ref6[mcID];
-        ourBlockID = this.registry.getBlockID(ourBlockName);
+        ourBlockID = this.registry.getBlockIndex(ourBlockName);
         if (ourBlockID == null) {
           throw new Error("voxel-clientmc unrecognized block name: " + ourBlockName + " for MC " + mcID);
         }

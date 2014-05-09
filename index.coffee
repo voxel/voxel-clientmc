@@ -107,9 +107,9 @@ class ClientMC
     # TODO: also support .metadata (MC block ID = 12-bits, meta = 4-bits, total 16-bits -> ours 16 bit)
     @translateBlockIDs = new @game.arrayType(maxId)
     for mcID in [0...@translateBlockIDs.length]
-      @translateBlockIDs[mcID] = @registry.getBlockID(@opts.mcBlocks.default)
+      @translateBlockIDs[mcID] = @registry.getBlockIndex(@opts.mcBlocks.default)
     for mcID, ourBlockName of @opts.mcBlocks
-      ourBlockID = @registry.getBlockID(ourBlockName)
+      ourBlockID = @registry.getBlockIndex(ourBlockName)
       throw new Error("voxel-clientmc unrecognized block name: #{ourBlockName} for MC #{mcID}") if not ourBlockID?
       @translateBlockIDs[mcID] = ourBlockID
 
