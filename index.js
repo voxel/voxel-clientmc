@@ -169,18 +169,22 @@
     };
 
     ClientMC.prototype.handlePacket = function(name, payload) {
-      var blockID, id, ourY, thisArrayBuffer, _ref, _ref1, _ref2;
+      var blockID, byteLength, byteOffset, compressed, id, ourY, _ref, _ref1, _ref2;
       if (name === 'map_chunk_bulk') {
-        console.log('payload.data.compressedChunkData ', payload.data.compressedChunkData.length, payload.data.compressedChunkData);
-        thisArrayBuffer = payload.data.compressedChunkData.buffer.slice(payload.data.compressedChunkData.byteOffset, payload.data.compressedChunkData.byteOffset + payload.data.compressedChunkData.length);
+        console.log('payload.compressedChunkData ', payload.compressedChunkData.length, payload.compressedChunkData);
         id = this.packetPayloadsNextID;
-        this.packetPayloadsPending[id] = payload.data;
+        this.packetPayloadsPending[id] = payload;
         this.packetPayloadsNextID += 1;
-        console.log('sending compressedBuffer ', thisArrayBuffer);
+        compressed = payload.compressedChunkData.buffer;
+        byteLength = payload.compressedChunkData.byteLength;
+        byteOffset = payload.compressedChunkData.byteOffset;
+        console.log('sending compressedBuffer ', byteLength);
         return this.zlib_worker.postMessage({
           id: id,
-          compressed: thisArrayBuffer
-        }, [thisArrayBuffer]);
+          compressed: compressed,
+          byteOffset: byteOffset,
+          byteLength: byteLength
+        }, [compressed]);
       } else if (name === 'spawn_position') {
         console.log('Spawn at ', payload);
         if ((_ref = this.game.plugins) != null) {

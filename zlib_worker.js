@@ -2,7 +2,7 @@
 (function() {
   var ever, zlib;
 
-  zlib = require('zlib-browserify');
+  zlib = require('zlib');
 
   ever = require('ever');
 
@@ -10,10 +10,11 @@
     return ever(this).on('message', function(ev) {
       var compressedArrayBuffer, compressedArrayView, compressedBuffer, id;
       compressedArrayBuffer = ev.data.compressed;
-      compressedArrayView = new Uint8Array(compressedArrayBuffer);
+      compressedArrayView = new Uint8Array(compressedArrayBuffer, ev.data.byteOffset, ev.data.byteLength);
       compressedBuffer = new Buffer(compressedArrayView);
       id = ev.data.id;
       console.log('worker decomp start ' + id + ' len' + compressedBuffer.length);
+      debugger;
       return zlib.inflate(compressedBuffer, (function(_this) {
         return function(err, decompressed) {
           var decompressedBuffer;
@@ -21,8 +22,9 @@
           if (err) {
             _this.postMessage({
               id: id,
+              compressed: compressedArrayBuffer,
               err: err.toString()
-            });
+            }, [compressedArrayBuffer]);
             return;
           }
           decompressedBuffer = decompressed.buffer;

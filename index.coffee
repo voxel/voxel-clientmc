@@ -131,24 +131,20 @@ class ClientMC
 
   handlePacket: (name, payload) ->
     if name == 'map_chunk_bulk'
-      console.log 'payload.data.compressedChunkData ',payload.data.compressedChunkData.length,payload.data.compressedChunkData
+      console.log 'payload.compressedChunkData ',payload.compressedChunkData.length,payload.compressedChunkData
 
-      # copies ArrayBuffer, since .buffer refers to the entire backing storage! (vs 
-      # only the compressedChunkData we want to compress). TODO: fix this hack
-      thisArrayBuffer = payload.data.compressedChunkData.buffer.slice(
-        payload.data.compressedChunkData.byteOffset,
-        payload.data.compressedChunkData.byteOffset + payload.data.compressedChunkData.length)
-
-      #thisArrayView = new Uint8Array(thisArrayBuffer)
-      #window.Buffer = Buffer
-      #require('zlib-browserify').inflate thisArrayView, (err, decompressed) =>
+      #require('zlib').inflate payload.compressedChunkData, (err, decompressed) =>
       #  console.log 'NON-WORKER decomp=',err+'',decompressed
 
       id = @packetPayloadsNextID
-      @packetPayloadsPending[id] = payload.data  # save for continued processing in onDecompressed
+      @packetPayloadsPending[id] = payload # save for continued processing in onDecompressed
       @packetPayloadsNextID += 1
-      console.log 'sending compressedBuffer ',thisArrayBuffer
-      @zlib_worker.postMessage {id:id, compressed:thisArrayBuffer}, [thisArrayBuffer]
+      # send the ArrayBuffer as a transferrable, along with any possible offsets/length within the data view
+      compressed = payload.compressedChunkData.buffer
+      byteLength = payload.compressedChunkData.byteLength
+      byteOffset = payload.compressedChunkData.byteOffset
+      console.log 'sending compressedBuffer ',byteLength
+      @zlib_worker.postMessage {id, compressed, byteOffset, byteLength}, [compressed]
    
     else if name == 'spawn_position'
       # move to spawn TODO: this might only reset the compass 
