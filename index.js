@@ -23,13 +23,18 @@
   };
 
   decodePacket = function(data) {
-    var buffer, id, name, payload, result;
+    var buffer, id, isServer, name, packetsToParse, payload, result, state;
     if (!(data instanceof Uint8Array)) {
       return void 0;
     }
     data._isBuffer = true;
     buffer = new Buffer(data);
-    result = minecraft_protocol.protocol.parsePacket(buffer);
+    state = 'play';
+    isServer = false;
+    packetsToParse = {
+      packet: true
+    };
+    result = minecraft_protocol.protocol.parsePacket(buffer, state, isServer, packetsToParse);
     if (!result || result.error) {
       console.log('protocol parse error: ' + JSON.stringify(result.error));
       return void 0;
@@ -231,8 +236,9 @@
     };
 
     ClientMC.prototype.sendPacket = function(name, params) {
-      var data;
-      data = minecraft_protocol.protocol.createPacketBuffer(name, params);
+      var data, state;
+      state = 'play';
+      data = minecraft_protocol.protocol.createPacketBuffer(name, state, params);
       return this.ws.write(data);
     };
 

@@ -22,7 +22,11 @@ decodePacket = (data) -> # based on https://github.com/deathcap/wsmc/tree/master
   data._isBuffer = true
   buffer = new Buffer(data)
 
-  result = minecraft_protocol.protocol.parsePacket(buffer)
+
+  state = 'play'
+  isServer = false
+  packetsToParse = {packet: true}
+  result = minecraft_protocol.protocol.parsePacket(buffer, state, isServer, packetsToParse)
   if !result || result.error
     console.log('protocol parse error: ' + JSON.stringify(result.error))
     return undefined
@@ -41,7 +45,7 @@ class ClientMC
     @opts.url ?= 'ws://localhost:1234'
 
     # map http://minecraft.gamepedia.com/Data_values#Block_IDs to our block names
-    @opts.mcBlocks ?= 
+    @opts.mcBlocks ?=
       0: 'air'
       1: 'stone'
       2: 'grass'
@@ -196,7 +200,8 @@ class ClientMC
     @sendPacket 'player_position', {x, y, z, stance, onGround}
 
   sendPacket: (name, params) ->
-    data = minecraft_protocol.protocol.createPacketBuffer name, params
+    state = 'play'
+    data = minecraft_protocol.protocol.createPacketBuffer name, state, params
     @ws.write(data)  # TODO: handle error
 
   onDecompressed: (ev) ->
