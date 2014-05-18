@@ -163,16 +163,16 @@ class ClientMC
       blockID = @translateBlockIDs[payload.type] #  TODO: .metadata
       @game.setBlock [payload.x, payload.y, payload.z], blockID
 
-    else if name == 'player_position'
+    else if name == 'position'
       # TODO, yaw, pitch. to convert see http://wiki.vg/Protocol#Player_Position_And_Look
       console.log 'player pos and look', payload
       ourY= payload.y - 1.62 # empirical  TODO: not playerHeight?
       @game.plugins?.get('voxel-player').moveTo payload.x, ourY, payload.z
 
       # the "apology"
-      @sendPacket 'player_position', payload
+      @sendPacket 'position', payload
 
-    else if name == 'kicked'
+    else if name == 'kick_disconnect'
       window.alert "Disconnected from server: #{payload.reason}"  # TODO: console, also for chat
     else if name == 'chat'
       # log formatted message
@@ -197,7 +197,7 @@ class ClientMC
     stance = y + @mcPlayerHeight
     onGround = true
 
-    @sendPacket 'player_position', {x, y, z, stance, onGround}
+    @sendPacket 'position', {x, y, z, stance, onGround}
 
   sendPacket: (name, params) ->
     state = 'play'

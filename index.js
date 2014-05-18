@@ -191,14 +191,14 @@
         console.log('block_change', payload);
         blockID = this.translateBlockIDs[payload.type];
         return this.game.setBlock([payload.x, payload.y, payload.z], blockID);
-      } else if (name === 'player_position') {
+      } else if (name === 'position') {
         console.log('player pos and look', payload);
         ourY = payload.y - 1.62;
         if ((_ref1 = this.game.plugins) != null) {
           _ref1.get('voxel-player').moveTo(payload.x, ourY, payload.z);
         }
-        return this.sendPacket('player_position', payload);
-      } else if (name === 'kicked') {
+        return this.sendPacket('position', payload);
+      } else if (name === 'kick_disconnect') {
         return window.alert("Disconnected from server: " + payload.reason);
       } else if (name === 'chat') {
         return (_ref2 = this.game.plugins) != null ? _ref2.get('voxel-console').logNode(tellraw2dom(payload.message)) : void 0;
@@ -226,7 +226,7 @@
       z = pos.z;
       stance = y + this.mcPlayerHeight;
       onGround = true;
-      return this.sendPacket('player_position', {
+      return this.sendPacket('position', {
         x: x,
         y: y,
         z: z,
