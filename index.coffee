@@ -1,3 +1,4 @@
+ndarray = require 'ndarray'
 websocket_stream = require 'websocket-stream'
 minecraft_protocol = require 'minecraft-protocol'
 ever = require 'ever'
@@ -283,11 +284,18 @@ class ClientMC
     voxels = @voxelChunks[pos.join('|')]
     return if not voxels?
 
-    chunk = {
-      position: pos
-      dims: [@game.chunkSize, @game.chunkSize, @game.chunkSize]
-      voxels: voxels
-    }
+    shape = [@game.chunkSize, @game.chunkSize, @game.chunkSize]
+
+    if not @game.voxels.voxelIndex  # ndarray voxel removes this in https://github.com/maxogden/voxel/pull/18 TODO: better detection?
+      chunk = ndarray(voxels, shape)
+      chunk.position = pos
+    else
+      # pre-ndarray format TODO: support this too in ndarray voxel?
+      chunk = {
+        position: pos
+        dims: shape
+        voxels: voxels
+      }
 
     @game.showChunk(chunk)
 
