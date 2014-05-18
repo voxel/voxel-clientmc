@@ -212,7 +212,7 @@
     };
 
     ClientMC.prototype.sendChat = function(text) {
-      return this.sendPacket('chat_message', {
+      return this.sendPacket('chat', {
         message: text
       });
     };

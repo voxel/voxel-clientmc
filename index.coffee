@@ -176,7 +176,7 @@ class ClientMC
       @game.plugins?.get('voxel-console').logNode tellraw2dom(payload.message)
 
   sendChat: (text) ->
-    @sendPacket 'chat_message', {message: text}
+    @sendPacket 'chat', {message: text}
 
   # setup timer to send player position updates to the server
   setupPositionUpdates: () ->
