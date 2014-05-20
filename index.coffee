@@ -29,7 +29,7 @@ decodePacket = (data) -> # based on https://github.com/deathcap/wsmc/tree/master
   packetsToParse = {packet: true}
   result = minecraft_protocol.protocol.parsePacket(buffer, state, isServer, packetsToParse)
   if !result || result.error
-    console.log('protocol parse error: ' + JSON.stringify(result.error))
+    @log('protocol parse error: ' + JSON.stringify(result.error))
     return undefined
 
   payload = result.results
@@ -42,6 +42,7 @@ decodePacket = (data) -> # based on https://github.com/deathcap/wsmc/tree/master
 class ClientMC
   constructor: (@game, @opts) ->
     @registry = @game.plugins?.get('voxel-registry') ? throw new Error('voxel-clientmc requires voxel-registry plugin')
+    @console = @game.plugins?.get('voxel-console') # optional
 
     @opts.url ?= 'ws://localhost:1234'
 
@@ -71,6 +72,8 @@ class ClientMC
     @enable()
 
   enable: () ->
+    @log 'voxel-clientmc initializing...'
+
     @game.plugins?.disable('voxel-land')    # also provides chunks, use ours instead
     #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
     #@game.plugins?.get('voxel-player').moveTo -251, 81, -309
@@ -84,10 +87,10 @@ class ClientMC
 
     # WebSocket to server proxy (wsmc)
     @ws.on 'error', (err) =>
-      console.log 'WebSocket error', err
+      @log 'WebSocket error', err
       @game.plugins?.disable('voxel-clientmc')
     @ws.on 'end', () =>
-      console.log 'WebSocket end'
+      @log 'WebSocket end'
       @game.plugins?.disable('voxel-clientmc')
 
     @ws.on 'data', (data) =>
@@ -97,7 +100,7 @@ class ClientMC
 
       @handlePacket packet.name, packet.payload
 
-    @game.plugins?.get('voxel-console')?.widget?.on 'input', @onConsoleInput = (text) =>
+    @console?.widget?.on 'input', @onConsoleInput = (text) =>
       @sendChat(text)
 
     # chunk decompression
@@ -124,18 +127,27 @@ class ClientMC
     @chunkMask = (1 << @chunkBits) - 1
 
   disable: () ->
-    console.log 'voxel-clientmc disablingd'
+    @log 'voxel-clientmc disabling'
     @game.voxels.removeListener 'missingChunk', @missingChunk
     @game.plugins?.get('voxel-console').widget.removeListener 'input', @onConsoleInput
     @ws.end()
     @clearPositionUpdateTimer?()
 
+  # call the browser console.log() function with arguments as an array
+  nativeConsoleLog: (args) ->
+    Function.prototype.bind.call(console.log, console).apply(console, args) # see http://stackoverflow.com/questions/5538972
+
+  # log to browser and to user console if available
+  log: (msg, rest...) ->
+    @nativeConsoleLog ['[voxel-clientmc] ' + msg].concat(rest)  # as separate parameters to allow object expansion
+    @console?.log msg + ' ' + rest.join ' '
+
   handlePacket: (name, payload) ->
     if name == 'map_chunk_bulk'
-      console.log 'payload.compressedChunkData ',payload.compressedChunkData.length,payload.compressedChunkData
+      @log 'payload.compressedChunkData ',payload.compressedChunkData.length,payload.compressedChunkData
 
       #require('zlib').inflate payload.compressedChunkData, (err, decompressed) =>
-      #  console.log 'NON-WORKER decomp=',err+'',decompressed
+      #  @log 'NON-WORKER decomp=',err+'',decompressed
 
       id = @packetPayloadsNextID
       @packetPayloadsPending[id] = payload # save for continued processing in onDecompressed
@@ -144,25 +156,25 @@ class ClientMC
       compressed = payload.compressedChunkData.buffer
       byteLength = payload.compressedChunkData.byteLength
       byteOffset = payload.compressedChunkData.byteOffset
-      console.log 'sending compressedBuffer ',byteLength
+      @log 'sending compressedBuffer ',byteLength
       @zlib_worker.postMessage {id, compressed, byteOffset, byteLength}, [compressed]
    
     else if name == 'spawn_position'
       # move to spawn TODO: this might only reset the compass 
-      console.log 'Spawn at ',payload
+      @log 'Spawn at ',payload
       @game.plugins?.get('voxel-player').moveTo payload.x, payload.y, payload.z
       #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
       
       @setupPositionUpdates()  # TODO: now or when?
     
     else if name == 'block_change'
-      console.log 'block_change',payload
+      @log 'block_change',payload
       blockID = @translateBlockIDs[payload.type] #  TODO: .metadata
       @game.setBlock [payload.x, payload.y, payload.z], blockID
 
     else if name == 'position'
       # TODO, yaw, pitch. to convert see http://wiki.vg/Protocol#Player_Position_And_Look
-      console.log 'player pos and look', payload
+      @log 'player pos and look', payload
       ourY= payload.y - 1.62 # empirical  TODO: not playerHeight?
       @game.plugins?.get('voxel-player').moveTo payload.x, ourY, payload.z
 
@@ -202,18 +214,18 @@ class ClientMC
     @ws.write(data)  # TODO: handle error
 
   onDecompressed: (ev) ->
-    console.log 'onDecompressed',ev
+    @log 'onDecompressed',ev
 
     id = ev.data.id
     payload = @packetPayloadsPending[id]
     delete @packetPayloadsPending[id]
 
     if ev.data.err
-      console.log 'received decompression error',ev.data.err,' for ',ev.data.id
+      @log 'received decompression error',ev.data.err,' for ',ev.data.id
       return
 
     inflated = new Buffer(new Uint8Array(ev.data.decompressed))  # new Buffer() for .slice method below. TODO: replace with typed array alternative
-    console.log '  decomp', id, inflated.length
+    @log '  decomp', id, inflated.length
 
     # unpack chunk data
     # based on https://github.com/superjoe30/mineflayer/blob/cc3eae10f622da24c9051268e9fc8ec3fe01ed7e/lib/plugins/blocks.js#L195
@@ -235,7 +247,7 @@ class ClientMC
       offset += size
 
     if offset != inflated.length
-      console.log "incomplete chunk decode: #{offset} != #{inflated.length}"
+      @log "incomplete chunk decode: #{offset} != #{inflated.length}"
 
 
   # convert MC chunk format to ours, caching to be ready for missingChunk()
