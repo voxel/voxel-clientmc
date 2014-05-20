@@ -41,8 +41,8 @@ decodePacket = (data) -> # based on https://github.com/deathcap/wsmc/tree/master
 
 class ClientMC
   constructor: (@game, @opts) ->
-    @registry = @game.plugins?.get('voxel-registry') ? throw new Error('voxel-clientmc requires voxel-registry plugin')
-    @console = @game.plugins?.get('voxel-console') # optional
+    @registry = @game.plugins.get('voxel-registry') ? throw new Error('voxel-clientmc requires voxel-registry plugin')
+    @console = @game.plugins.get('voxel-console') # optional
 
     @opts.url ?= "ws://#{document.location.hostname}:1234"
 
@@ -74,10 +74,10 @@ class ClientMC
   enable: () ->
     @log 'voxel-clientmc initializing...'
 
-    @game.plugins?.disable('voxel-land')    # also provides chunks, use ours instead
-    #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
-    #@game.plugins?.get('voxel-player').moveTo -251, 81, -309
-    @game.plugins?.enable('voxel-fly')
+    @game.plugins.disable('voxel-land')    # also provides chunks, use ours instead
+    #@game.plugins.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
+    #@game.plugins.get('voxel-player').moveTo -251, 81, -309
+    @game.plugins.enable('voxel-fly')
 
     @ws = websocket_stream(@opts.url, {type: Uint8Array})
 
@@ -88,10 +88,10 @@ class ClientMC
     # WebSocket to server proxy (wsmc)
     @ws.on 'error', (err) =>
       @log 'WebSocket error', err
-      @game.plugins?.disable('voxel-clientmc')
+      @game.plugins.disable('voxel-clientmc')
     @ws.on 'end', () =>
       @log 'WebSocket end'
-      @game.plugins?.disable('voxel-clientmc')
+      @game.plugins.disable('voxel-clientmc')
 
     @ws.on 'data', (data) =>
       packet = decodePacket(data)
@@ -129,7 +129,7 @@ class ClientMC
   disable: () ->
     @log 'voxel-clientmc disabling'
     @game.voxels.removeListener 'missingChunk', @missingChunk
-    @game.plugins?.get('voxel-console').widget.removeListener 'input', @onConsoleInput
+    @game.plugins.get('voxel-console').widget.removeListener 'input', @onConsoleInput
     @ws.end()
     @clearPositionUpdateTimer?()
 
@@ -162,8 +162,8 @@ class ClientMC
     else if name == 'spawn_position'
       # move to spawn TODO: this might only reset the compass 
       @log 'Spawn at ',payload
-      @game.plugins?.get('voxel-player').moveTo payload.x, payload.y, payload.z
-      #@game.plugins?.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
+      @game.plugins.get('voxel-player').moveTo payload.x, payload.y, payload.z
+      #@game.plugins.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
       
       @setupPositionUpdates()  # TODO: now or when?
     
@@ -176,7 +176,7 @@ class ClientMC
       # TODO, yaw, pitch. to convert see http://wiki.vg/Protocol#Player_Position_And_Look
       @log 'player pos and look', payload
       ourY= payload.y - 1.62 # empirical  TODO: not playerHeight?
-      @game.plugins?.get('voxel-player').moveTo payload.x, ourY, payload.z
+      @game.plugins.get('voxel-player').moveTo payload.x, ourY, payload.z
 
       # the "apology"
       @sendPacket 'position', payload
@@ -185,7 +185,7 @@ class ClientMC
       window.alert "Disconnected from server: #{payload.reason}"  # TODO: console, also for chat
     else if name == 'chat'
       # log formatted message
-      @game.plugins?.get('voxel-console').logNode tellraw2dom(payload.message)
+      @game.plugins.get('voxel-console').logNode tellraw2dom(payload.message)
 
   sendChat: (text) ->
     @sendPacket 'chat', {message: text}
@@ -196,7 +196,7 @@ class ClientMC
     @clearPositionUpdateTimer = @game.setInterval @sendPositionUpdate.bind(@), 50
 
   sendPositionUpdate: () ->
-    pos = @game.plugins?.get('voxel-player').yaw.position
+    pos = @game.plugins.get('voxel-player').yaw.position
     return if not pos?
 
     x = pos.x
