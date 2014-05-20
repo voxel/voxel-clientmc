@@ -10,9 +10,8 @@ module.exports = () ->
 
     id = ev.data.id
     console.log 'worker decomp start '+id+' len'+compressedBuffer.length
-    debugger
 
-    zlib.inflate compressedBuffer, (err, decompressed) => # TODO: handle error
+    zlib.inflate compressedBuffer, (err, decompressed) =>
       console.log 'worker err'+ err
       if err
         @postMessage {id:id, compressed:compressedArrayBuffer, err:err.toString()}, [compressedArrayBuffer] # toString() to make cloneable
