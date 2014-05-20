@@ -121,7 +121,7 @@ var main = function() {
     'voxel-land': {populateTrees: true},
     'voxel-decorative': {},
     'voxel-inventory-creative': {},
-    'voxel-clientmc': {url: 'ws://localhost:1234'},
+    'voxel-clientmc': {},
 
     'voxel-console': {},
     'voxel-commands': {},

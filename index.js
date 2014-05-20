@@ -67,7 +67,7 @@
       }).call(this);
       this.console = (_ref1 = this.game.plugins) != null ? _ref1.get('voxel-console') : void 0;
       if ((_base = this.opts).url == null) {
-        _base.url = 'ws://localhost:1234';
+        _base.url = "ws://" + document.location.hostname + ":1234";
       }
       if ((_base1 = this.opts).mcBlocks == null) {
         _base1.mcBlocks = {

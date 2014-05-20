@@ -44,7 +44,7 @@ class ClientMC
     @registry = @game.plugins?.get('voxel-registry') ? throw new Error('voxel-clientmc requires voxel-registry plugin')
     @console = @game.plugins?.get('voxel-console') # optional
 
-    @opts.url ?= 'ws://localhost:1234'
+    @opts.url ?= "ws://#{document.location.hostname}:1234"
 
     # map http://minecraft.gamepedia.com/Data_values#Block_IDs to our block names
     @opts.mcBlocks ?=
