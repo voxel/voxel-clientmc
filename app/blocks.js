@@ -46,6 +46,7 @@ BlocksPlugin.prototype.enable = function() {
 
   this.registry.registerBlock('wool', {texture: 'wool_colored_white'}); // TODO: metablocks for colors
 
+  this.registry.registerBlock('missing', {texture: 'no_texture', displayName: 'Missing Block'}); // custom texture (TODO: standard location?)
   // TODO: more blocks
 };
 

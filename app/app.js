@@ -66,7 +66,7 @@ var main = function() {
       chunkDistance: 2,
       materials: [],  // added dynamically later
       texturePath: 'ArtPacks/ProgrammerArt/textures/blocks/', // subproject with textures
-      artPacks: ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-v2.2.1-dev-ResourcePack-20140322.zip'],
+      artPacks: ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-v2.2.2-dev-ResourcePack-20140521.zip'],
       worldOrigin: [0, 0, 0],
       controls: {
         discreteFire: false,

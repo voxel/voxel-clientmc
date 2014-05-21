@@ -67,10 +67,11 @@ function ClientMC(game, opts) {
       //33: 'piston',
       //34: 'pistonHead',
       35: 'wool',
+      45: 'brick',
       161: 'leavesOak',
       162: 'logOak',
 
-      default: 'brick',
+      default: 'missing'
   };
     
   this.mcPlayerHeight = 1.74; // from https://github.com/superjoe30/mineflayer/blob/4daa1f8a1f4282755b723df4bb748f6602784744/lib/plugins/physics.js#L23 - tested with a binary search
