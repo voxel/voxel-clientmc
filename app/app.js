@@ -31,8 +31,8 @@ require('voxel-pickaxe');
 require('voxel-wool');
 require('voxel-pumpkin');
 require('voxel-blockdata');
+require('./blocks.js');
 require('voxel-daylight');
-require('voxel-land');
 require('voxel-decorative');
 require('voxel-inventory-creative');
 require('voxel-clientmc');
@@ -118,7 +118,7 @@ var main = function() {
     'voxel-pumpkin': {},
     'voxel-daylight': {ambientColor: 0x888888, directionalColor: 0xffffff},
 
-    'voxel-land': {populateTrees: true},
+    './blocks.js': {}, // misc inanimate opaque solid blocks
     'voxel-decorative': {},
     'voxel-inventory-creative': {},
     'voxel-clientmc': {},

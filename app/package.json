@@ -56,7 +56,6 @@
     "voxel-pumpkin": "^0.1.2",
     "voxel-registry": "^0.5.0",
     "voxel-daylight": "^0.1.1",
-    "voxel-land": "git://github.com/deathcap/voxel-land.git#2e18e31131e5cd5e28af67ba2f01e3f787684776",
     "voxel-decorative": "^0.1.0",
     "voxel-inventory-creative": "^0.1.0",
     "voxel-clientmc": "*",
