@@ -27,7 +27,10 @@ function ClientMC(game, opts) {
 
   opts.url = opts.url || 'ws://'+document.location.hostname+':1234';
 
-  // map http://minecraft.gamepedia.com/Data_values#Block_IDs to our block names
+  // Translate network block indices to our block names
+  // http://minecraft.gamepedia.com/Data_values#Block_IDs http://minecraft-ids.grahamedgecombe.com/
+  // TODO: get translation table from network protocol? I think Forge supports custom blocks with the map sent over the network?
+  // TODO: move to app/blocks.js?
   opts.mcBlocks = opts.mcBlocks || {
       0: 'air',
       1: 'stone',
@@ -35,14 +38,35 @@ function ClientMC(game, opts) {
       3: 'dirt',
       4: 'cobblestone',
       5: 'plankOak',
-
-      7: 'obsidian',   // bedrock
-
+      //6: 'sapling',
+      7: 'bedrock',
+      8: 'waterFlow',
+      9: 'water',
+      10: 'lavaFlow',
+      11: 'lavaFlow',
+      12: 'sand',
+      13: 'gravel',
+      14: 'oreGold',
+      15: 'oreIron',
       16: 'oreCoal',
-
       17: 'logOak',
       18: 'leavesOak',
-
+      19: 'sponge',
+      20: 'glass',
+      21: 'oreLapis',
+      22: 'blockLapis',
+      //23: 'dispenser',
+      24: 'sandstone',
+      //25: 'noteblock',
+      //26: 'bed',
+      //27: 'railPowered',
+      //28: 'railDetector',
+      //29: 'pistonSticky',
+      //30: 'web',
+      //31: 'shrubDead',
+      //33: 'piston',
+      //34: 'pistonHead',
+      35: 'wool',
       161: 'leavesOak',
       162: 'logOak',
 
