@@ -6,8 +6,6 @@ var minecraft_protocol = require('minecraft-protocol');
 var ever = require('ever');
 var webworkify = require('webworkify');
 var tellraw2dom = require('tellraw2dom');
-var bit_twiddle = require('bit-twiddle');
-var popCount = bit_twiddle.popCount;
 
 module.exports = function(game, opts) {
   return new ClientMC(game, opts);
@@ -96,8 +94,7 @@ ClientMC.prototype.enable = function() {
 
   // chunk decompression
   this.zlib_worker = webworkify(require('./zlib_worker.js'));
-  ever(this.zlib_worker).on('message', this.onDecompressed.bind(this));
-  this.packetPayloadsPending = {};
+  ever(this.zlib_worker).on('message', this.addColumn.bind(this));
   this.packetPayloadsNextID = 0;
 
   var maxId = 255; // TODO: 4096?
@@ -167,7 +164,7 @@ ClientMC.prototype.nativeConsoleLog = function(args) {
 
 // log to browser and to user console if available
 ClientMC.prototype.log = function(msg) {
-  var rest = []; //arguments.slice(1); // TODO
+  var rest = Array.prototype.slice.call(arguments);
   this.nativeConsoleLog(['[voxel-clientmc] ' + msg].concat(rest));  // as separate parameters to allow object expansion
   if (this.console) this.console.log(msg + ' ' + rest.join(' '));
 };
@@ -183,7 +180,6 @@ ClientMC.prototype.handlePacket = function(name, payload) {
     //};
 
     var id = this.packetPayloadsNextID;
-    this.packetPayloadsPending[id] = payload; // save for continued processing in onDecompressed
     this.packetPayloadsNextID += 1;
     // send the ArrayBuffer as a transferrable, along with any possible offsets/length within the data view
     var compressed = payload.compressedChunkData.buffer;
@@ -192,6 +188,7 @@ ClientMC.prototype.handlePacket = function(name, payload) {
     this.log('sending compressedBuffer ',byteLength);
     this.zlib_worker.postMessage({
       id:id,
+      payload:payload, // XXX TODO: non-transferrable; only compressedChunkData separate
       compressed:compressed,
       byteOffset:byteOffset,
       byteLength:byteLength}, [compressed]);
@@ -261,52 +258,17 @@ ClientMC.prototype.sendPacket = function(name, params) {
   this.ws.write(data); // TODO: handle error
 };
 
-ClientMC.prototype.onDecompressed = function(ev) {
-  this.log('onDecompressed',ev);
 
-  var id = ev.data.id;
-  var payload = this.packetPayloadsPending[id];
-  delete this.packetPayloadsPending[id];
-
+// convert MC chunk format to ours, caching to be ready for missingChunk()
+ClientMC.prototype.addColumn = function(ev) {
   if (ev.data.err) {
-    this.log('received decompression error',ev.data.err,' for ',ev.data.id);
+    console.log('received decompression error',ev.data.err,' for ',id);
     return;
   }
 
-  var inflated = new Buffer(new Uint8Array(ev.data.decompressed));// new Buffer() for .slice method below. TODO: replace with typed array alternative
-  this.log('  decomp', id, inflated.length);
-
-  // unpack chunk data
-  // based on https://github.com/superjoe30/mineflayer/blob/cc3eae10f622da24c9051268e9fc8ec3fe01ed7e/lib/plugins/blocks.js#L195
-  // and http://wiki.vg/SMP_Map_Format#Data
-  var offset = 0;
-  var meta = 0;
-  var size = 0;
-  for (var i = 0; i < payload.meta.length; i += 1) {
-    meta = payload.meta[i];
-    size = (8192 + (payload.skyLightSent ? 2048 : 0)) *
-      popCount(meta.bitMap) +
-      2048 * popCount(meta.addBitMap) + 256;
-    this.addColumn({
-      x: meta.x,
-      z: meta.z,
-      bitMap: meta.bitMap,
-      addBitMap: meta.addBitMap,
-      skyLightSent: payload.skyLightSent,
-      groundUp: true,
-      data: inflated.slice(offset, offset + size),
-    });
-    offset += size;
-  }
-
-  if (offset !== inflated.length) {
-    this.log('incomplete chunk decode: '+offset+' != '+inflated.length);
-  }
-};
+  var args = ev.data;
 
 
-// convert MC chunk format to ours, caching to be ready for missingChunk()
-ClientMC.prototype.addColumn = function(args) {
   var chunkX = args.x;
   var chunkZ = args.z;
 
@@ -314,7 +276,7 @@ ClientMC.prototype.addColumn = function(args) {
   var size = 4096;
   for (var chunkY = 0; chunkY <= 16; chunkY += 1) {
     if (args.bitMap & (1 << chunkY)) {
-      var miniChunk = args.data.slice(offset, offset + size);
+      var miniChunk = args.data.subarray(offset, offset + size);
       offset += size;
 
       // convert MC's chunks to voxel-engine's
