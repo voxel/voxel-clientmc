@@ -13,7 +13,7 @@
   "dependencies": {
     "voxel-engine": "git://github.com/deathcap/voxel-engine.git#e4c579b8cf030d73323859fda0004c78c056ab05",
     "voxel-texture": "^0.5.8",
-    "voxel-texture-shader": "^0.3.0",
+    "voxel-texture-shader": "^0.3.1",
     "voxel-artpacks": "^0.1.2",
     "voxel-drop": "^0.1.2",
     "voxel-start": "^0.1.0",
