@@ -67,7 +67,49 @@ function ClientMC(game, opts) {
       //33: 'piston',
       //34: 'pistonHead',
       35: 'wool',
+      41: 'blockGold', // voxel-decorative
+      42: 'blockIron', // voxel-decorative
       45: 'brick',
+      46: 'tnt',
+      47: 'bookshelf',
+      48: 'stoneMossy',
+      49: 'obsidian',
+      56: 'oreDiamond',
+      57: 'blockDiamond', // voxel-decorative
+      58: 'workbench', // voxel-workbench
+      60: 'farmland',
+      61: 'furnace',
+      62: 'furnace', // TODO: lit
+      73: 'oreRedstone',
+      74: 'oreRedstone', // TODO: glowing
+      78: 'snow', // TODO: non-block snow
+      79: 'ice',
+      80: 'snow',
+      81: 'cactus',
+      82: 'clay',
+      84: 'jukebox',
+      86: 'pumpkinCarvedNorth', // voxel-pumpkin
+      87: 'netherrack',
+      88: 'soulsand',
+      89: 'glowstone',
+      90: 'portal',
+      91: 'pumpkinCarvedNorthLit', // voxel-pumpkin
+      97: 'stone', // silverfish
+      98: 'stoneBrick', // voxel-decorative
+      //'98:1': 'stoneBrickMossy', // TODO
+      //'98:2': 'stoneBrickCracked',
+      //'98:3': 'stoneBrickCarved',
+      103: 'blockMelon',
+      121: 'endstone',
+      123: 'lampOff',
+      124: 'lampOn',
+      129: 'oreEmerald',
+      133: 'blockEmerald',
+      152: 'blockRedstone',
+      153: 'oreNetherQuartz',
+      155: 'blockQuartz',
+      173: 'blockCoal',
+
       161: 'leavesOak',
       162: 'logOak',
 
