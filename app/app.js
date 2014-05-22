@@ -64,6 +64,7 @@ var main = function() {
       useAtlas: true,
       generateChunks: false,
       chunkDistance: 2,
+      chunkSize: 16,
       materials: [],  // added dynamically later
       texturePath: 'ArtPacks/ProgrammerArt/textures/blocks/', // subproject with textures
       artPacks: ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-v2.2.2-dev-ResourcePack-20140521.zip'],

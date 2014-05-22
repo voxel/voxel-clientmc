@@ -20,6 +20,8 @@ function ClientMC(game, opts) {
   this.game = game;
   this.opts = opts;
 
+  if (game.chunkSize !== 16) throw new Error('voxel-clientmc requires game.chunkSize 16'); // // 16x16x16 maps more closely to 16x256x16 than 32x32x32
+
   this.registry = game.plugins.get('voxel-registry');
   if (!this.registry) throw new Error('voxel-clientmc requires voxel-registry plugin');
 
@@ -443,7 +445,7 @@ ClientMC.prototype.addColumn = function(ev) {
       offset += size;
 
       // convert MC's chunks to voxel-engine's
-      // TODO: speed this up somehow
+      // TODO: speed this up somehow, align the chunks XZ and just expand the Y
       for (var dy = 0; dy <= 16; dy += 1) {
         var y = chunkY*16 + dy;
         for (var dz = 0; dz <= 16; dz += 1) {
