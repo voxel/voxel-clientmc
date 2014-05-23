@@ -482,6 +482,11 @@ ClientMC.prototype.addColumn = function(args) {
       var miniChunk = args.data.slice(offset, offset + size);
       offset += size;
 
+      // calculate chunk coordinates
+      var vchunkKey = (x >> this.chunkBits) + '|' + (y >> this.chunkBits) + '|' + (z >> this.chunkBits);
+      if (!(vchunkKey in this.voxelChunks))
+        this.voxelChunks[vchunkKey] = new this.game.arrayType(this.game.chunkSize * this.game.chunkSize * this.game.chunkSize);
+
       // convert MC's chunks to voxel-engine's
       // TODO: speed this up somehow, align the chunks XZ and just expand the Y
       for (var dy = 0; dy <= 16; dy += 1) {
@@ -495,10 +500,6 @@ ClientMC.prototype.addColumn = function(args) {
             var mcBlockID = miniChunk[dx + dz*16 + dy*16*16];
 
             // voxel-engine uses XYZ, (by default) 32x32x32
-            // calculate chunk coordinates
-            var vchunkKey = (x >> this.chunkBits) + '|' + (y >> this.chunkBits) + '|' + (z >> this.chunkBits);
-            if (!(vchunkKey in this.voxelChunks))
-              this.voxelChunks[vchunkKey] = new this.game.arrayType(this.game.chunkSize * this.game.chunkSize * this.game.chunkSize);
 
             var ourBlockID = this.translateBlockIDs[mcBlockID];
 
