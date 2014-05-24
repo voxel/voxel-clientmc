@@ -27,6 +27,10 @@ function ClientMC(game, opts) {
   this.registry = game.plugins.get('voxel-registry');
   if (!this.registry) throw new Error('voxel-clientmc requires voxel-registry plugin');
 
+  if (this.game.voxels.voxelIndex) { // ndarray voxel removes this in https://github.com/maxogden/voxel/pull/18 TODO: better detection?
+    throw new Error('voxel-clientmc requires voxel-engine with ndarray support');
+  }
+
   this.console = game.plugins.get('voxel-console'); // optional
 
   opts.url = opts.url || 'ws://'+document.location.hostname+':1234';
@@ -477,38 +481,40 @@ ClientMC.prototype.addColumn = function(args) {
 
   var offset = 0;
   var size = 4096;
+  var s = this.game.chunkSize;
   for (var chunkY = 0; chunkY <= 16; chunkY += 1) {
     if (args.bitMap & (1 << chunkY)) {
       var miniChunk = args.data.slice(offset, offset + size);
       offset += size;
 
-      // calculate chunk coordinates
-      var vchunkKey = (x >> this.chunkBits) + '|' + (y >> this.chunkBits) + '|' + (z >> this.chunkBits);
-      if (!(vchunkKey in this.voxelChunks))
-        this.voxelChunks[vchunkKey] = new this.game.arrayType(this.game.chunkSize * this.game.chunkSize * this.game.chunkSize);
+      // translate network block IDs
+      for (var i = 0; i < miniChunk.length; i += 1) {
+          var mcBlockID = miniChunk[i];
+          var ourBlockID = this.translateBlockIDs[mcBlockID];
+          //vChunk.data[i] = ourBlockID;
+          miniChunk[i] = ourBlockID;
+      }
 
-      // convert MC's chunks to voxel-engine's
-      // TODO: speed this up somehow, align the chunks XZ and just expand the Y
-      for (var dy = 0; dy <= 16; dy += 1) {
-        var y = chunkY*16 + dy;
-        for (var dz = 0; dz <= 16; dz += 1) {
-          var z = chunkZ*16 + dz;
-          for (var dx = 0; dx <= 16; dx += 1) {
-            var x = chunkX*16 + dx;
+      var vChunk = ndarray(new this.game.arrayType(s*s*s), [s,s,s]);
 
-            // MC uses XZY ordering, 16x16x16 mini-chunks
-            var mcBlockID = miniChunk[dx + dz*16 + dy*16*16];
-
-            // voxel-engine uses XYZ, (by default) 32x32x32
-
-            var ourBlockID = this.translateBlockIDs[mcBlockID];
-
-            // our block offsets within the chunk, scaled
-            var vindex = (x & this.chunkMask) + ((y & this.chunkMask) << this.chunkBits) + ((z & this.chunkMask) << this.chunkBits * 2);
-            this.voxelChunks[vchunkKey][vindex] = ourBlockID;
+      // transpose since MC uses XZY but voxel-engine XYZ
+      // TODO: changes stride..requires clients to use ndarray API get(), not access .data directly..
+      //  just switch to 100% ndarray-based voxel-engine?
+      /*
+      vChunk = vChunk.transpose(0, 2, 1);
+      */
+      for (var x = 0; x < vChunk.shape[0]; x += 1) {
+        for (var z = 0; z < vChunk.shape[1]; z += 1) {
+          for (var y = 0; y < vChunk.shape[2]; y += 1) {
+            vChunk.set(z, y, x, miniChunk[x | z<<4 | y<<8]);
           }
         }
       }
+
+      // save TODO: avoid recreating array, mutate in-place?
+      var key = [chunkX, chunkY, chunkZ].join('|');
+      vChunk.position = [chunkX, chunkY, chunkZ];
+      this.voxelChunks[key] = vChunk;
     } else {
       // entirely air
     }
@@ -518,23 +524,8 @@ ClientMC.prototype.addColumn = function(args) {
 };
 
 ClientMC.prototype.missingChunk = function(pos) {
-  var voxels = this.voxelChunks[pos.join('|')];
-  if (voxels === undefined) return;
-
-  var shape = [this.game.chunkSize, this.game.chunkSize, this.game.chunkSize];
-
-  var chunk;
-  if (!this.game.voxels.voxelIndex) { // ndarray voxel removes this in https://github.com/maxogden/voxel/pull/18 TODO: better detection?
-    chunk = ndarray(voxels, shape);
-    chunk.position = pos;
-  } else {
-    // pre-ndarray format TODO: support this too in ndarray voxel?
-    chunk = {
-      position: pos,
-      dims: shape,
-      voxels: voxels,
-    };
-  }
+  var chunk = this.voxelChunks[pos.join('|')];
+  if (chunk === undefined) return;
 
   this.game.showChunk(chunk);
 };
