@@ -16,7 +16,6 @@ require('voxel-outline');
 require('voxel-voila');
 require('voxel-health');
 require('voxel-health-bar');
-require('voxel-health-fall');
 require('voxel-food');
 require('voxel-sfx');
 require('voxel-gamemode');
@@ -31,6 +30,7 @@ require('voxel-pumpkin');
 require('voxel-blockdata');
 require('./blocks.js');
 require('voxel-decorative');
+require('voxel-land');
 require('voxel-inventory-creative');
 require('voxel-clientmc');
 require('voxel-console');
@@ -112,6 +112,7 @@ var main = function() {
 
     './blocks.js': {}, // misc inanimate opaque solid blocks
     'voxel-decorative': {},
+    'voxel-land': {registerBlocks: false},
     'voxel-inventory-creative': {},
     'voxel-clientmc': {},
 
@@ -122,7 +123,6 @@ var main = function() {
 
     'voxel-health': {},
     'voxel-health-bar': {},
-    'voxel-health-fall': {},
     'voxel-food': {},
     'voxel-sfx': {},
     'voxel-gamemode': {},

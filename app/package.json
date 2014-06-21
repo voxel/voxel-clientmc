@@ -23,7 +23,6 @@
     "voxel-voila": "^0.4.0",
     "voxel-health": "^0.1.0",
     "voxel-health-bar": "^0.1.0",
-    "voxel-health-fall": "^0.1.0",
     "voxel-food": "^0.1.0",
     "voxel-sfx": "^0.2.0",
     "voxel-sprint": "^0.1.0",
@@ -49,6 +48,7 @@
     "voxel-wool": "^0.1.0",
     "voxel-pumpkin": "^0.1.2",
     "voxel-registry": "^0.8.1",
+    "voxel-land": "^0.2.0",
     "voxel-decorative": "^0.1.0",
     "voxel-inventory-creative": "^0.1.1",
     "voxel-clientmc": "*",
@@ -58,5 +58,8 @@
   "scripts": {
     "start": "beefy app.js -- --debug"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "coffeeify": "^0.6.0"
+  }
 }

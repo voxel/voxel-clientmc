@@ -33,7 +33,7 @@ function ClientMC(game, opts) {
 
   this.console = game.plugins.get('voxel-console'); // optional
 
-  opts.url = opts.url || 'ws://'+document.location.hostname+':1234';
+  opts.url = opts.url || 'ws://'+document.location.hostname+':24444';
 
   // Translate network block indices to our block names
   // http://minecraft.gamepedia.com/Data_values#Block_IDs http://minecraft-ids.grahamedgecombe.com/
@@ -228,10 +228,9 @@ function ClientMC(game, opts) {
 ClientMC.prototype.enable = function() {
   this.log('voxel-clientmc initializing...');
 
-  this.game.plugins.disable('voxel-land');   // also provides chunks, use ours instead
+  //this.game.plugins.disable('voxel-land');   // also provides chunks, use ours instead
   //this.game.plugins.get('voxel-player').homePosition = [-248, 77, -198] // can't do this TODO
   //this.game.plugins.get('voxel-player').moveTo -251, 81, -309
-  this.game.plugins.enable('voxel-fly');
 
   this.ws = websocket_stream(this.opts.url, {type: Uint8Array});
 
