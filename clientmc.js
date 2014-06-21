@@ -33,7 +33,7 @@ function ClientMC(game, opts) {
 
   this.console = game.plugins.get('voxel-console'); // optional
 
-  opts.url = opts.url || 'ws://'+document.location.hostname+':24444';
+  opts.url = opts.url || 'ws://'+document.location.hostname+':24444/server';
 
   // Translate network block indices to our block names
   // http://minecraft.gamepedia.com/Data_values#Block_IDs http://minecraft-ids.grahamedgecombe.com/
@@ -228,11 +228,12 @@ function ClientMC(game, opts) {
 ClientMC.prototype.enable = function() {
   this.log('voxel-clientmc initializing...');
 
-  //this.game.plugins.disable('voxel-land');   // also provides chunks, use ours instead
+  this.game.plugins.disable('voxel-land');   // also provides chunks, use ours instead
   //this.game.plugins.get('voxel-player').homePosition = [-248, 77, -198] // can't do this TODO
   //this.game.plugins.get('voxel-player').moveTo -251, 81, -309
 
   this.ws = websocket_stream(this.opts.url, {type: Uint8Array});
+  this.ws.write(new Buffer('webuser')); // TODO: name/key from URL hash
 
   this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
 
@@ -242,6 +243,7 @@ ClientMC.prototype.enable = function() {
   var self = this;
   this.ws.on('error', function(err) {
     self.log('WebSocket error', err);
+    console.log('WebSocket error',err);
     self.game.plugins.disable('voxel-clientmc');
   });
   this.ws.on('end', function() {
@@ -367,7 +369,10 @@ ClientMC.prototype.handlePacket = function(name, payload) {
   } else if (name === 'spawn_position') {
     // move to spawn TODO: this might only reset the compass 
     this.log('Spawn at ',payload);
-    this.game.plugins.get('voxel-player').moveTo(payload.x, payload.y, payload.z);
+    var pos = this.game.plugins.get('game-shell-fps-camera').camera.position;
+    pos[0] = payload.x;
+    pos[1] = payload.y;
+    pos[2] = payload.z;
     //this.game.plugins.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
     
     this.setupPositionUpdates();  // TODO: now or when?
@@ -381,7 +386,10 @@ ClientMC.prototype.handlePacket = function(name, payload) {
     // TODO, yaw, pitch. to convert see http://wiki.vg/Protocol#Player_Position_And_Look
     this.log('player pos and look', payload);
     var ourY = payload.y - 1.62; // empirical  TODO: not playerHeight?
-    this.game.plugins.get('voxel-player').moveTo(payload.x, ourY, payload.z);
+    var pos = this.game.plugins.get('game-shell-fps-camera').camera.position;
+    pos[0] = payload.x;
+    pos[1] = ourY;
+    pos[2] = payload.z;
 
     // the "apology"
     this.sendPacket('position', payload);
@@ -405,12 +413,12 @@ ClientMC.prototype.setupPositionUpdates = function() {
 };
 
 ClientMC.prototype.sendPositionUpdate = function() {
-  var pos = this.game.plugins.get('voxel-player').yaw.position;
+  var pos = this.game.cameraPosition();
   if (!pos) return;
 
-  var x = pos.x;
-  var y = pos.y + 1;
-  var z = pos.z;
+  var x = pos[0];
+  var y = pos[1] + 1;
+  var z = pos[2];
 
   var stance = y + this.mcPlayerHeight;
   var onGround = true;

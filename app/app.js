@@ -58,7 +58,6 @@ var main = function() {
       chunkSize: 16,
       materials: [],  // added dynamically later
       texturePath: 'ArtPacks/ProgrammerArt/textures/blocks/', // subproject with textures
-      artPacks: ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-v2.2.2-dev-ResourcePack-20140521.zip'],
       worldOrigin: [0, 0, 0],
       controls: {
         discreteFire: false,
@@ -98,6 +97,9 @@ var main = function() {
     },
     'voxel-registry': {},
     'voxel-artpacks': {},
+    'voxel-stitch': {
+      artpacks: ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-v2.2.2-dev-ResourcePack-20140521.zip']
+    },
     'voxel-wireframe': {},
     'voxel-chunkborder': {},
     'voxel-recipes': {},
@@ -112,7 +114,7 @@ var main = function() {
 
     './blocks.js': {}, // misc inanimate opaque solid blocks
     'voxel-decorative': {},
-    'voxel-land': {registerBlocks: false},
+    //'voxel-land': {registerBlocks: false},
     'voxel-inventory-creative': {},
     'voxel-clientmc': {},
 
