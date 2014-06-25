@@ -19,6 +19,8 @@
     "webworkify": "~0.1.0",
     "ndarray": "^1.0.14"
   },
-  "peerDependencies": {},
+  "scripts": {
+    "start": "(cd app && npm start)"
+  },
   "license": "MIT"
 }
