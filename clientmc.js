@@ -1,12 +1,11 @@
 'use strict';
 
 var ndarray = require('ndarray');
-var websocket_stream = require('websocket-stream');
-var minecraft_protocol = require('minecraft-protocol');
+var mineflayer = require('mineflayer');
 var ever = require('ever');
-var webworkify = require('webworkify');
 var tellraw2dom = require('tellraw2dom');
 var bit_twiddle = require('bit-twiddle');
+var webworkify = require('webworkify');
 var popCount = bit_twiddle.popCount;
 
 module.exports = function(game, opts) {
@@ -232,8 +231,20 @@ ClientMC.prototype.enable = function() {
   //this.game.plugins.get('voxel-player').homePosition = [-248, 77, -198] // can't do this TODO
   //this.game.plugins.get('voxel-player').moveTo -251, 81, -309
 
-  this.ws = websocket_stream(this.opts.url, {type: Uint8Array});
-  this.ws.write(new Buffer('webuser')); // TODO: name/key from URL hash
+  // login credential
+  var username;
+  var hash = document.location.hash;
+  if (hash.length < 2) {
+    // try anonymous auth
+    username = 'mcwebchatuserX';
+  } else {
+    username = hash.substring(1); // remove #
+  }
+
+  // create bot
+  this.bot = mineflayer.createBot({
+    username: username
+  });
 
   this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
 
@@ -241,32 +252,28 @@ ClientMC.prototype.enable = function() {
 
   // WebSocket to server proxy (wsmc)
   var self = this;
-  this.ws.on('error', function(err) {
+  this.bot.on('error', function(err) {
     self.log('WebSocket error', err);
     console.log('WebSocket error',err);
     self.game.plugins.disable('voxel-clientmc');
   });
-  this.ws.on('end', function() {
-    self.log('WebSocket end');
+  this.bot.on('close', function() {
+    self.log('WebSocket closed');
     self.game.plugins.disable('voxel-clientmc');
   });
 
-  this.ws.on('data', function(data) {
-    var packet = self.decodePacket(data);
-    if (!packet) {
-      return;
-    }
-
-    self.handlePacket(packet.name, packet.payload);
+  var self = this;
+  this.bot.on('message', function(message) {
+    self.console.logNode(tellraw2dom(message.json)); // TODO: also decode color codes
   });
 
   if (this.console) this.console.widget.on('input', this.onConsoleInput = function(text) {
-    self.sendChat(text);
+    self.bot.chat(text);
   });
 
   // chunk decompression
   this.zlib_worker = webworkify(require('./zlib_worker.js'));
-  ever(this.zlib_worker).on('message', this.onDecompressed.bind(this));
+  //ever(this.zlib_worker).on('message', this.onDecompressed.bind(this)); // TODO
   this.packetPayloadsPending = {};
   this.packetPayloadsNextID = 0;
 
@@ -342,6 +349,7 @@ ClientMC.prototype.log = function(msg) {
   if (this.console) this.console.log(msg + ' ' + rest.join(' '));
 };
 
+/* TODO: integrate with mineflayer
 ClientMC.prototype.handlePacket = function(name, payload) {
   var self = this;
 
@@ -375,8 +383,6 @@ ClientMC.prototype.handlePacket = function(name, payload) {
     pos[2] = payload.z;
     //this.game.plugins.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
     
-    this.setupPositionUpdates();  // TODO: now or when?
-  
   } else if (name === 'block_change') {
     this.log('block_change',payload);
     var blockID = this.translateBlockIDs[payload.type]; //  TODO: .metadata
@@ -400,41 +406,6 @@ ClientMC.prototype.handlePacket = function(name, payload) {
     // log formatted message
     this.game.plugins.get('voxel-console').logNode(tellraw2dom(payload.message));
   }
-};
-
-ClientMC.prototype.sendChat = function(text) {
-  this.sendPacket('chat', {message: text});
-};
-
-// setup timer to send player position updates to the server
-ClientMC.prototype.setupPositionUpdates = function() {
-  // MC requires every 50 ms (server = 20 ticks/second)
-  this.clearPositionUpdateTimer = this.game.setInterval(this.sendPositionUpdate.bind(this), 50);
-};
-
-ClientMC.prototype.sendPositionUpdate = function() {
-  var pos = this.game.cameraPosition();
-  if (!pos) return;
-
-  var x = pos[0];
-  var y = pos[1] + 1;
-  var z = pos[2];
-
-  var stance = y + this.mcPlayerHeight;
-  var onGround = true;
-
-  this.sendPacket('position', {
-    x:x,
-    y:y,
-    z:z,
-    stance:stance,
-    onGround:onGround});
-};
-
-ClientMC.prototype.sendPacket = function(name, params) {
-  var state = 'play';
-  var data = minecraft_protocol.protocol.createPacketBuffer(name, state, params);
-  this.ws.write(data); // TODO: handle error
 };
 
 ClientMC.prototype.onDecompressed = function(ev) {
@@ -480,7 +451,6 @@ ClientMC.prototype.onDecompressed = function(ev) {
   }
 };
 
-
 // convert MC chunk format to ours, caching to be ready for missingChunk()
 ClientMC.prototype.addColumn = function(args) {
   var chunkX = args.x;
@@ -507,9 +477,6 @@ ClientMC.prototype.addColumn = function(args) {
       // transpose since MC uses XZY but voxel-engine XYZ
       // TODO: changes stride..requires clients to use ndarray API get(), not access .data directly..
       //  just switch to 100% ndarray-based voxel-engine?
-      /*
-      vChunk = vChunk.transpose(0, 2, 1);
-      */
       for (var x = 0; x < vChunk.shape[0]; x += 1) {
         for (var z = 0; z < vChunk.shape[1]; z += 1) {
           for (var y = 0; y < vChunk.shape[2]; y += 1) {
@@ -529,6 +496,7 @@ ClientMC.prototype.addColumn = function(args) {
 
   // TODO: metadata,light,sky,add,biome
 };
+*/
 
 ClientMC.prototype.missingChunk = function(pos) {
   var chunk = this.voxelChunks[pos.join('|')];
