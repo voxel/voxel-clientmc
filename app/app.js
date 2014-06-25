@@ -34,7 +34,6 @@ require('voxel-land');
 require('voxel-inventory-creative');
 require('voxel-clientmc');
 require('voxel-console');
-require('voxel-commands');
 require('voxel-drop');
 require('voxel-zen');
 require('voxel-plugins-ui');
@@ -119,7 +118,6 @@ var main = function() {
     'voxel-clientmc': {},
 
     'voxel-console': {},
-    'voxel-commands': {},
     'voxel-drop': {},
     'voxel-zen': {},
 
