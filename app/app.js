@@ -39,6 +39,7 @@ require('voxel-zen');
 require('voxel-plugins-ui');
 require('voxel-keys');
 require('kb-bindings-ui');
+require('camera-debug');
 
 var createEngine = require('voxel-engine');
 
@@ -147,6 +148,7 @@ var main = function() {
     // the GUI window (built-in toggle with 'H')
     'voxel-plugins-ui': {},
     'kb-bindings-ui': {},
+    'camera-debug': {},
     }
   });
 };
