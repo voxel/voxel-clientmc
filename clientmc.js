@@ -273,14 +273,10 @@ ClientMC.prototype.enable = function() {
 
   this.bot.on('chunkColumnLoad', function(point,column) {
     self.console.log('CHUNK LOAD',point,column);
-    // TODO: parse column
+
+    self.addColumn(point, column);
   });
 
-  // chunk decompression
-  this.zlib_worker = webworkify(require('./zlib_worker.js'));
-  //ever(this.zlib_worker).on('message', this.onDecompressed.bind(this)); // TODO
-  this.packetPayloadsPending = {};
-  this.packetPayloadsNextID = 0;
 
   var maxId = 255; // TODO: 4096?
 
@@ -358,28 +354,7 @@ ClientMC.prototype.log = function(msg) {
 ClientMC.prototype.handlePacket = function(name, payload) {
   var self = this;
 
-  if (name === 'map_chunk_bulk') {
-    this.log('payload.compressedChunkData ',payload.compressedChunkData.length,payload.compressedChunkData);
-
-    //require('zlib').inflate(payload.compressedChunkData, function(err, decompressed) {
-    //  self.log('NON-WORKER decomp=',err+'',decompressed);
-    //};
-
-    var id = this.packetPayloadsNextID;
-    this.packetPayloadsPending[id] = payload; // save for continued processing in onDecompressed
-    this.packetPayloadsNextID += 1;
-    // send the ArrayBuffer as a transferrable, along with any possible offsets/length within the data view
-    var compressed = payload.compressedChunkData.buffer;
-    var byteLength = payload.compressedChunkData.byteLength;
-    var byteOffset = payload.compressedChunkData.byteOffset;
-    this.log('sending compressedBuffer ',byteLength);
-    this.zlib_worker.postMessage({
-      id:id,
-      compressed:compressed,
-      byteOffset:byteOffset,
-      byteLength:byteLength}, [compressed]);
- 
-  } else if (name === 'spawn_position') {
+  if (name === 'spawn_position') {
     // move to spawn TODO: this might only reset the compass 
     this.log('Spawn at ',payload);
     var pos = this.game.plugins.get('game-shell-fps-camera').camera.position;
@@ -412,96 +387,50 @@ ClientMC.prototype.handlePacket = function(name, payload) {
     this.game.plugins.get('voxel-console').logNode(tellraw2dom(payload.message));
   }
 };
-
-ClientMC.prototype.onDecompressed = function(ev) {
-  this.log('onDecompressed',ev);
-
-  var id = ev.data.id;
-  var payload = this.packetPayloadsPending[id];
-  delete this.packetPayloadsPending[id];
-
-  if (ev.data.err) {
-    this.log('received decompression error',ev.data.err,' for ',ev.data.id);
-    return;
-  }
-
-  var inflated = new Buffer(new Uint8Array(ev.data.decompressed));// new Buffer() for .slice method below. TODO: replace with typed array alternative
-  this.log('  decomp', id, inflated.length);
-
-  // unpack chunk data
-  // based on https://github.com/superjoe30/mineflayer/blob/cc3eae10f622da24c9051268e9fc8ec3fe01ed7e/lib/plugins/blocks.js#L195
-  // and http://wiki.vg/SMP_Map_Format#Data
-  var offset = 0;
-  var meta = 0;
-  var size = 0;
-  for (var i = 0; i < payload.meta.length; i += 1) {
-    meta = payload.meta[i];
-    size = (8192 + (payload.skyLightSent ? 2048 : 0)) *
-      popCount(meta.bitMap) +
-      2048 * popCount(meta.addBitMap) + 256;
-    this.addColumn({
-      x: meta.x,
-      z: meta.z,
-      bitMap: meta.bitMap,
-      addBitMap: meta.addBitMap,
-      skyLightSent: payload.skyLightSent,
-      groundUp: true,
-      data: inflated.slice(offset, offset + size),
-    });
-    offset += size;
-  }
-
-  if (offset !== inflated.length) {
-    this.log('incomplete chunk decode: '+offset+' != '+inflated.length);
-  }
-};
+*/
 
 // convert MC chunk format to ours, caching to be ready for missingChunk()
-ClientMC.prototype.addColumn = function(args) {
-  var chunkX = args.x;
-  var chunkZ = args.z;
+ClientMC.prototype.addColumn = function(point, column) {
+  var chunkX = point.x;
+  var chunkZ = point.z;
 
   var offset = 0;
   var size = 4096;
   var s = this.game.chunkSize;
-  for (var chunkY = 0; chunkY <= 16; chunkY += 1) {
-    if (args.bitMap & (1 << chunkY)) {
-      var miniChunk = args.data.slice(offset, offset + size);
-      offset += size;
+  var length = column.blockType.length;
+  for (var chunkY = 0; chunkY < length; chunkY += 1) {
+    var miniChunk = column.blockType[chunkY];
+    if (miniChunk === null) continue; // skip 100% solid air
 
-      // translate network block IDs
-      for (var i = 0; i < miniChunk.length; i += 1) {
-          var mcBlockID = miniChunk[i];
-          var ourBlockID = this.translateBlockIDs[mcBlockID];
-          //vChunk.data[i] = ourBlockID;
-          miniChunk[i] = ourBlockID;
-      }
+    // translate network block IDs
+    for (var i = 0; i < miniChunk.length; i += 1) {
+        var mcBlockID = miniChunk[i];
+        var ourBlockID = this.translateBlockIDs[mcBlockID];
+        //vChunk.data[i] = ourBlockID;
+        miniChunk[i] = ourBlockID;
+    }
 
-      var vChunk = ndarray(new this.game.arrayType(s*s*s), [s,s,s]);
+    var vChunk = ndarray(new this.game.arrayType(s*s*s), [s,s,s]);
 
-      // transpose since MC uses XZY but voxel-engine XYZ
-      // TODO: changes stride..requires clients to use ndarray API get(), not access .data directly..
-      //  just switch to 100% ndarray-based voxel-engine?
-      for (var x = 0; x < vChunk.shape[0]; x += 1) {
-        for (var z = 0; z < vChunk.shape[1]; z += 1) {
-          for (var y = 0; y < vChunk.shape[2]; y += 1) {
-            vChunk.set(z, y, x, miniChunk[x | z<<4 | y<<8]);
-          }
+    // transpose since MC uses XZY but voxel-engine XYZ
+    // TODO: changes stride..requires clients to use ndarray API get(), not access .data directly..
+    //  just switch to 100% ndarray-based voxel-engine?
+    for (var x = 0; x < vChunk.shape[0]; x += 1) {
+      for (var z = 0; z < vChunk.shape[1]; z += 1) {
+        for (var y = 0; y < vChunk.shape[2]; y += 1) {
+          vChunk.set(z, y, x, miniChunk[x | z<<4 | y<<8]);
         }
       }
-
-      // save TODO: avoid recreating array, mutate in-place?
-      var key = [chunkX, chunkY, chunkZ].join('|');
-      vChunk.position = [chunkX, chunkY, chunkZ];
-      this.voxelChunks[key] = vChunk;
-    } else {
-      // entirely air
     }
+
+    // save TODO: avoid recreating array, mutate in-place?
+    var key = [chunkX, chunkY, chunkZ].join('|');
+    vChunk.position = [chunkX, chunkY, chunkZ];
+    this.voxelChunks[key] = vChunk;
   }
 
   // TODO: metadata,light,sky,add,biome
 };
-*/
 
 ClientMC.prototype.missingChunk = function(pos) {
   var chunk = this.voxelChunks[pos.join('|')];
