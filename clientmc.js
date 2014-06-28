@@ -271,6 +271,11 @@ ClientMC.prototype.enable = function() {
     self.bot.chat(text);
   });
 
+  this.bot.on('chunkColumnLoad', function(point,column) {
+    self.console.log('CHUNK LOAD',point,column);
+    // TODO: parse column
+  });
+
   // chunk decompression
   this.zlib_worker = webworkify(require('./zlib_worker.js'));
   //ever(this.zlib_worker).on('message', this.onDecompressed.bind(this)); // TODO
