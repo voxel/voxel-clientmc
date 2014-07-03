@@ -422,6 +422,8 @@ ClientMC.prototype.addColumn = function(point, column) {
         }
       }
     }
+    var ss="";for(var k=0;k<vChunk.data.length;++k)ss+=vChunk.data[k]+",";
+    console.log(ss);
 
     // save TODO: avoid recreating array, mutate in-place?
     var key = [chunkX, chunkY, chunkZ].join('|');
