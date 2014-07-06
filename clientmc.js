@@ -277,6 +277,12 @@ ClientMC.prototype.enable = function() {
     self.addColumn(point, column);
   });
 
+  this.bot.on('game', function() {
+    self.console.log('Spawn position: '+JSON.stringify(self.bot.spawnPoint));
+    self.game.controls.target().avatar.position.x = self.bot.spawnPoint.x;
+    self.game.controls.target().avatar.position.y = self.bot.spawnPoint.y+100; // give some space to fall while chunks load TODO: move after all chunks load instead
+    self.game.controls.target().avatar.position.z = self.bot.spawnPoint.z;
+  });
 
   var maxId = 255; // TODO: 4096?
 
