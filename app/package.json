@@ -52,7 +52,8 @@
     "voxel-decorative": "^0.1.0",
     "voxel-inventory-creative": "^0.1.1",
     "voxel-clientmc": "*",
-    "voxel-console": "^0.2.1"
+    "voxel-console": "^0.2.1",
+    "voxel-commands": "^0.2.0"
   },
   "scripts": {
     "start": "beefy app.js -- --debug"
