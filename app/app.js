@@ -101,6 +101,9 @@ var main = function() {
     'voxel-stitch': {
       artpacks: ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-v2.2.2-dev-ResourcePack-20140521.zip']
     },
+    'voxel-shader': {
+      cameraFOV: 90.0
+    },
     'voxel-wireframe': {},
     'voxel-chunkborder': {},
     'voxel-recipes': {},
