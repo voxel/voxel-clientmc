@@ -12,7 +12,7 @@
   ],
   "dependencies": {
     "voxel-engine": "git://github.com/deathcap/voxel-engine.git#ndarray",
-    "voxel-artpacks": "^0.3.3",
+    "voxel-artpacks": "^0.1.2",
     "voxel-wireframe": "^0.5.0",
     "voxel-chunkborder": "^0.4.2",
     "voxel-outline": "^0.2.0",
