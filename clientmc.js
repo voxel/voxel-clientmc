@@ -403,7 +403,7 @@ ClientMC.prototype.addColumn = function(point, column) {
 
   var offset = 0;
   var size = 4096;
-  var s = this.game.chunkSize;
+  var s = this.game.chunkSize + this.game.chunkPad;
   var length = column.blockType.length;
   for (var chunkY = 0; chunkY < length; chunkY += 1) {
     var miniChunk = column.blockType[chunkY];
@@ -425,7 +425,7 @@ ClientMC.prototype.addColumn = function(point, column) {
     for (var x = 0; x < vChunk.shape[0]; x += 1) {
       for (var z = 0; z < vChunk.shape[1]; z += 1) {
         for (var y = 0; y < vChunk.shape[2]; y += 1) {
-          vChunk.set(z, y, x, miniChunk[x | z<<4 | y<<8]);
+          vChunk.set(z+2, y+2, x+2, miniChunk[x | z<<4 | y<<8]);
         }
       }
     }
