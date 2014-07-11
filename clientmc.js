@@ -272,7 +272,6 @@ ClientMC.prototype.enable = function() {
   });
 
   this.bot.on('chunkColumnLoad', function(point,column) {
-    if (point.x!==0||point.y!==0||point.z!==0)return; // XXX: only test origin chunk
     self.console.log('Chunk load ('+point.x+','+point.y+','+point.z+')');
 
     self.addColumn(point, column);
@@ -281,7 +280,7 @@ ClientMC.prototype.enable = function() {
   this.bot.on('game', function() {
     self.console.log('Spawn position: '+JSON.stringify(self.bot.spawnPoint));
     self.game.controls.target().avatar.position.x = self.bot.spawnPoint.x;
-    self.game.controls.target().avatar.position.y = self.bot.spawnPoint.y+100; // give some space to fall while chunks load TODO: move after all chunks load instead
+    self.game.controls.target().avatar.position.y = self.bot.spawnPoint.y+50; // give some space to fall while chunks load TODO: move after all chunks load instead
     self.game.controls.target().avatar.position.z = self.bot.spawnPoint.z;
   });
 
