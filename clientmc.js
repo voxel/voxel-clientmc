@@ -272,6 +272,7 @@ ClientMC.prototype.enable = function() {
   });
 
   this.bot.on('chunkColumnLoad', function(point,column) {
+    if (point.x!==0||point.y!==0||point.z!==0)return; // XXX: only test origin chunk
     self.console.log('Chunk load ('+point.x+','+point.y+','+point.z+')');
 
     self.addColumn(point, column);
