@@ -272,7 +272,7 @@ ClientMC.prototype.enable = function() {
   });
 
   this.bot.on('chunkColumnLoad', function(point,column) {
-    self.console.log('CHUNK LOAD',point,column);
+    self.console.log('Chunk load ('+point.x+','+point.y+','+point.z+')');
 
     self.addColumn(point, column);
   });
