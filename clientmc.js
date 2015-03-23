@@ -1,12 +1,10 @@
 'use strict';
 
 var ndarray = require('ndarray');
-var mineflayer = require('mineflayer');
+var mineflayer = require('wsmc/mineflayer-ws');
 var ever = require('ever');
 var tellraw2dom = require('tellraw2dom');
-var bit_twiddle = require('bit-twiddle');
 var webworkify = require('webworkify');
-var popCount = bit_twiddle.popCount;
 
 module.exports = function(game, opts) {
   return new ClientMC(game, opts);
