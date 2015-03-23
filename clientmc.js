@@ -262,7 +262,7 @@ ClientMC.prototype.enable = function() {
 
   var self = this;
   this.bot.on('message', function(message) {
-    self.console.logNode(tellraw2dom(message.json)); // TODO: also decode color codes
+    self.console.logNode(tellraw2dom(message.json));
   });
 
   if (this.console) this.console.widget.on('input', this.onConsoleInput = function(text) {
@@ -271,6 +271,10 @@ ClientMC.prototype.enable = function() {
 
   this.bot.on('chunkColumnLoad', function(point) {
     self.addColumn(point);
+  });
+
+  this.bot.on('kicked', function(reason) {
+    window.alert('Disconnected from server: '+reason); // TODO: console, also for chat
   });
 
   this.bot.on('game', function() {
@@ -381,13 +385,6 @@ ClientMC.prototype.handlePacket = function(name, payload) {
 
     // the "apology"
     this.sendPacket('position', payload);
-
-  } else if (name === 'kick_disconnect') {
-    window.alert('Disconnected from server: '+payload.reason); // TODO: console, also for chat
-  } else if (name === 'chat') {
-    // log formatted message
-    this.game.plugins.get('voxel-console').logNode(tellraw2dom(payload.message));
-  }
 };
 */
 
