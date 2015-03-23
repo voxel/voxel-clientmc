@@ -269,10 +269,8 @@ ClientMC.prototype.enable = function() {
     self.bot.chat(text);
   });
 
-  this.bot.on('chunkColumnLoad', function(point,column) {
-    self.console.log('Chunk load ('+point.x+','+point.y+','+point.z+')');
-
-    self.addColumn(point, column);
+  this.bot.on('chunkColumnLoad', function(point) {
+    self.addColumn(point);
   });
 
   this.bot.on('game', function() {
@@ -394,9 +392,11 @@ ClientMC.prototype.handlePacket = function(name, payload) {
 */
 
 // convert MC chunk format to ours, caching to be ready for missingChunk()
-ClientMC.prototype.addColumn = function(point, column) {
+ClientMC.prototype.addColumn = function(point) {
+  //this.console.log('Chunk load ('+point.x+','+point.y+','+point.z+')');
   var chunkX = point.x;
   var chunkZ = point.z;
+  /* TODO: blockAt around chunk size
 
   var offset = 0;
   var size = 4096;
@@ -434,6 +434,7 @@ ClientMC.prototype.addColumn = function(point, column) {
   }
 
   // TODO: metadata,light,sky,add,biome
+  */
 };
 
 ClientMC.prototype.missingChunk = function(pos) {
