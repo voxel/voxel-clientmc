@@ -58,7 +58,6 @@ var main = function() {
       generateChunks: false,
       chunkDistance: 2,
       chunkSize: 16,
-      materials: [],  // added dynamically later
       texturePath: 'ArtPacks/ProgrammerArt/textures/blocks/', // subproject with textures
       worldOrigin: [0, 0, 0],
       controls: {
