@@ -11,7 +11,7 @@ module.exports = function(game, opts) {
 };
 
 module.exports.pluginInfo = {
-  loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry', 'voxel-console']
+  loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry', 'voxel-console', 'voxel-commands']
 };
 
 
@@ -29,6 +29,7 @@ function ClientMC(game, opts) {
   }
 
   this.console = game.plugins.get('voxel-console'); // optional
+  this.commands = game.plugins.get('voxel-commands'); // optional
 
   opts.url = opts.url || 'ws://'+document.location.hostname+':24444/server';
 
@@ -282,6 +283,8 @@ ClientMC.prototype.enable = function() {
     self.game.controls.target().avatar.position.x = self.bot.spawnPoint.x;
     self.game.controls.target().avatar.position.y = self.bot.spawnPoint.y+50; // give some space to fall while chunks load TODO: move after all chunks load instead
     self.game.controls.target().avatar.position.z = self.bot.spawnPoint.z;
+
+    self.commands.isConnectedToServer = true;
   });
 
   var maxId = 255; // TODO: 4096?
