@@ -18,7 +18,7 @@ require('voxel-health');
 require('voxel-health-bar');
 require('voxel-food');
 require('voxel-sfx');
-require('voxel-fly');
+require('voxel-flight');
 require('voxel-gamemode');
 require('voxel-sprint');
 require('voxel-mine');
@@ -131,7 +131,7 @@ var main = function() {
     'voxel-health-bar': {},
     'voxel-food': {},
     'voxel-sfx': {},
-    'voxel-fly': {},
+    'voxel-flight': {},
     'voxel-gamemode': {},
     'voxel-sprint': {},
     'voxel-inventory-hotbar': {inventorySize:10},
