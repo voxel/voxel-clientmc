@@ -436,7 +436,11 @@ ClientMC.prototype.addColumn = function(point) {
           console.log('Created new chunk '+chunkKey);
         }
 
-        this.game.setBlock(a, ourBlockID); // TODO: faster direct chunk access (but may cross)
+
+        //this.game.setBlock(a, ourBlockID); // instead, faster direct chunk access below (avoids events)
+        //this.game.addChunkToNextUpdate({position: chunkIndex});
+        this.game.chunksNeedsUpdate[chunkKey] = this.game.voxels.chunks[chunkKey]; // dirty for showChunk TODO: accumulate all first, then one showChunk at end
+        this.game.voxels.voxelAtPosition(a, ourBlockID);
       }
     }
   }
