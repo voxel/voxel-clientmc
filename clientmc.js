@@ -404,9 +404,13 @@ ClientMC.prototype.addColumn = function(point) {
   var chunkSizeX = 16;
   var chunkSizeY = 256;
   var chunkSizeZ = 16;
-  for (var i = 0; i < chunkSizeY; i += 1) {
+  for (var i = chunkSizeY - 1; i; i -= 1) {
     for (var j = 0; j < chunkSizeX; j += 1) {
       for (var k = 0; k < chunkSizeZ; k += 1) {
+
+        v.x = a[0] = chunkX + j;
+        v.y = a[1] = i;
+        v.z = a[2] = chunkZ + k;
 
         var blockObject = this.bot.blockAt(v);
         if (!blockObject) continue; // TODO: fix out of bounds?
@@ -432,15 +436,8 @@ ClientMC.prototype.addColumn = function(point) {
         }
 
         this.game.setBlock(a, ourBlockID); // TODO: faster direct chunk access (but may cross)
-
-        v.z += 1;
-        a[2] += 1;
       }
-      v.x += 1;
-      a[0] += 1;
     }
-    v.y += 1;
-    a[1] += 1;
   }
 
 /*
