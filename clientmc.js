@@ -5,6 +5,7 @@ var mineflayer = require('wsmc/mineflayer-ws');
 var ever = require('ever');
 var tellraw2dom = require('tellraw2dom');
 var webworkify = require('webworkify');
+var vec3Object = require('vec3'); // note: object type used by mineflayer, NOT gl-vec3 which is just a typed array :(
 
 module.exports = function(game, opts) {
   return new ClientMC(game, opts);
@@ -393,11 +394,56 @@ ClientMC.prototype.handlePacket = function(name, payload) {
 
 // convert MC chunk format to ours, caching to be ready for missingChunk()
 ClientMC.prototype.addColumn = function(point) {
-  //this.console.log('Chunk load ('+point.x+','+point.y+','+point.z+')');
+  this.console.log('Chunk load ('+point.x+','+point.y+','+point.z+')');
   var chunkX = point.x;
   var chunkZ = point.z;
-  /* TODO: blockAt around chunk size
 
+  // call blockAt around chunk size TODO: optimized iterator
+  var v = vec3Object(chunkX, 0, chunkZ);
+  var a = [chunkX, 0, chunkZ];
+  var chunkSizeX = 16;
+  var chunkSizeY = 256;
+  var chunkSizeZ = 16;
+  for (var i = 0; i < chunkSizeY; i += 1) {
+    for (var j = 0; j < chunkSizeX; j += 1) {
+      for (var k = 0; k < chunkSizeZ; k += 1) {
+
+        var blockObject = this.bot.blockAt(v);
+        if (!blockObject) continue; // TODO: fix out of bounds?
+
+        var mcBlockID = blockObject.type;
+        var ourBlockID = this.translateBlockIDs[mcBlockID]; // TODO: metadata?
+
+        var chunkIndex = this.game.voxels.chunkAtCoordinates(a[0], a[1], a[2]);
+        var chunkKey = chunkIndex.join('|');
+        if (!this.game.voxels.chunks[chunkKey]) {
+          // create new chunk TODO: refactor, similar chunk data store object creation in voxel-land
+          var width = this.game.chunkSize;
+          var pad = this.game.chunkPad;
+          var buffer = new ArrayBuffer((width+pad) * (width+pad) * (width+pad) * this.game.arrayType.BYTES_PER_ELEMENT);
+          var voxels = new self.game.arrayType(buffer);
+          var chunk = ndarray(new self.game.arrayType(buffer), [width+pad, width+pad, width+pad]);
+          chunk.position = [chunkIndex[0], chunkIndex[1], chunkIndex[2]];
+
+          //var h = pad >>> 1;
+          //var chunkUnpadded = chunk.lo(h,h,h).hi(width,width,width); // for easier access
+          this.game.voxels.chunks[chunkKey] = chunk;
+          console.log('Created new chunk '+chunkKey);
+        }
+
+        this.game.setBlock(a, ourBlockID); // TODO: faster direct chunk access (but may cross)
+
+        v.z += 1;
+        a[2] += 1;
+      }
+      v.x += 1;
+      a[0] += 1;
+    }
+    v.y += 1;
+    a[1] += 1;
+  }
+
+/*
   var offset = 0;
   var size = 4096;
   var s = this.game.chunkSize + this.game.chunkPad;
