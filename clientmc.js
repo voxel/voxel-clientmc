@@ -421,13 +421,14 @@ ClientMC.prototype.addColumn = function(point) {
 
         var chunkIndex = this.game.voxels.chunkAtCoordinates(a[0], a[1], a[2]);
         var chunkKey = chunkIndex.join('|');
-        if (!this.game.voxels.chunks[chunkKey]) {
+        var chunk = this.game.voxels.chunks[chunkKey];
+        if (!chunk) {
           // create new chunk TODO: refactor, similar chunk data store object creation in voxel-land
           var width = this.game.chunkSize;
           var pad = this.game.chunkPad;
           var buffer = new ArrayBuffer((width+pad) * (width+pad) * (width+pad) * this.game.arrayType.BYTES_PER_ELEMENT);
           var voxels = new self.game.arrayType(buffer);
-          var chunk = ndarray(new self.game.arrayType(buffer), [width+pad, width+pad, width+pad]);
+          chunk = ndarray(new self.game.arrayType(buffer), [width+pad, width+pad, width+pad]);
           chunk.position = [chunkIndex[0], chunkIndex[1], chunkIndex[2]];
 
           //var h = pad >>> 1;
@@ -436,11 +437,16 @@ ClientMC.prototype.addColumn = function(point) {
           console.log('Created new chunk '+chunkKey);
         }
 
-
         //this.game.setBlock(a, ourBlockID); // instead, faster direct chunk access below (avoids events)
         //this.game.addChunkToNextUpdate({position: chunkIndex});
         this.game.chunksNeedsUpdate[chunkKey] = this.game.voxels.chunks[chunkKey]; // dirty for showChunk TODO: accumulate all first, then one showChunk at end
-        this.game.voxels.voxelAtPosition(a, ourBlockID);
+        //this.game.voxels.voxelAtPosition(a, ourBlockID);
+        var mask = this.game.voxels.chunkMask;
+        var h = this.game.voxels.chunkPadHalf;
+        var mx = a[0] & mask;
+        var my = a[1] & mask;
+        var mz = a[2] & mask;
+        chunk.set(mx+h, my+h, mz+h, ourBlockID);
       }
     }
   }
