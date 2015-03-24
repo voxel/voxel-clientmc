@@ -391,11 +391,14 @@ ClientMC.prototype.handlePacket = function(name, payload) {
 */
 
 // convert MC chunk format to ours, caching to be ready for missingChunk()
+var CHUNKS_ADDED = 0;
 ClientMC.prototype.addColumn = function(point) {
+  if (CHUNKS_ADDED >= 2) return; // only a few for testing
   this.console.log('Chunk load ('+point.x+','+point.y+','+point.z+')');
   var chunkX = point.x;
   var chunkZ = point.z;
 
+  var started = window.performance.now();
   // call blockAt around chunk size TODO: optimized iterator
   var v = vec3Object(chunkX, 0, chunkZ);
   var a = [chunkX, 0, chunkZ];
@@ -437,6 +440,9 @@ ClientMC.prototype.addColumn = function(point) {
       }
     }
   }
+  var took = window.performance.now() - started;
+  console.log('chunk added in '+took);
+  CHUNKS_ADDED += 1;
 
 /*
   var offset = 0;
