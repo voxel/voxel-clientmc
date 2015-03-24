@@ -57,7 +57,6 @@ var main = function() {
       useAtlas: true,
       generateChunks: false,
       chunkDistance: 2,
-      chunkSize: 16,
       texturePath: 'ArtPacks/ProgrammerArt/textures/blocks/', // subproject with textures
       worldOrigin: [0, 0, 0],
       controls: {

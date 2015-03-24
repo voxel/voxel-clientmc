@@ -20,8 +20,6 @@ function ClientMC(game, opts) {
   this.game = game;
   this.opts = opts;
 
-  if (game.chunkSize !== 16) throw new Error('voxel-clientmc requires game.chunkSize 16'); // // 16x16x16 maps more closely to 16x256x16 than 32x32x32
-
   this.registry = game.plugins.get('voxel-registry');
   if (!this.registry) throw new Error('voxel-clientmc requires voxel-registry plugin');
 
