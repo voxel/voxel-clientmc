@@ -7,7 +7,6 @@ var toBufferStream = require('tobuffer-stream');
 
 module.exports = function(self) {
   console.log('mf-worker initializing',self);
-  debugger;
 
   self.parentStream = ParentStream();
 
@@ -15,6 +14,9 @@ module.exports = function(self) {
     username: 'user1', // TODO
     stream: self.parentStream.pipe(toBufferStream),
   });
+
+  // if we exist (the webworker), socket is connected
+  self.bot.client.emit('connect');
 
   console.log('mf-worker bot',self.bot);
 

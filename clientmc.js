@@ -239,11 +239,16 @@ ClientMC.prototype.enable = function() {
     username = hash.substring(1); // remove #
   }
 
-  this.mfworker = webworkify(require('./mf-worker.js'));
-  this.mfworkerStream = workerstream(this.mfworker);
   this.websocketStream = websocket_stream(this.opts.url);
+  var self = this;
+  this.websocketStream.on('connect', function() {
+    console.log('websocketStream connected, launching worker');
 
-  this.websocketStream.pipe(this.mfworkerStream);
+    self.mfworker = webworkify(require('./mf-worker.js'));
+    self.mfworkerStream = workerstream(self.mfworker);
+
+    self.websocketStream.pipe(self.mfworkerStream);
+  });
 
   /*
   this.mfworkerStream.write('test');
