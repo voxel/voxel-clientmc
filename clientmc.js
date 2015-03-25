@@ -269,9 +269,24 @@ ClientMC.prototype.enable = function() {
     self.bot.chat(text);
   });
 
+  // block events
+
   this.bot.on('chunkColumnLoad', function(point) {
     self.addColumn(point);
   });
+
+  var pos = [0,0,0];
+  this.bot.on('blockUpdate', function(oldBlock, newBlock) {
+    console.log('blockUpdate', oldBlock, newBlock);
+    var position = newBlock.position;
+    pos[0] = position.x;
+    pos[1] = position.y;
+    pos[2] = position.z;
+    var val = self.translateBlockIDs[newBlock.type];
+    self.game.setBlock(pos, val);
+  });
+  // TODO: also handle mass block update (event? would like to optimize multi_block_change, but..)
+
 
   this.bot.on('kicked', function(reason) {
     window.alert('Disconnected from server: '+reason); // TODO: console, also for chat
@@ -362,21 +377,7 @@ ClientMC.prototype.log = function(msg) {
 ClientMC.prototype.handlePacket = function(name, payload) {
   var self = this;
 
-  if (name === 'spawn_position') {
-    // move to spawn TODO: this might only reset the compass 
-    this.log('Spawn at ',payload);
-    var pos = this.game.plugins.get('game-shell-fps-camera').camera.position;
-    pos[0] = payload.x;
-    pos[1] = payload.y;
-    pos[2] = payload.z;
-    //this.game.plugins.get('voxel-player').homePosition = [-248, 77, -198] # can't do this TODO
-    
-  } else if (name === 'block_change') {
-    this.log('block_change',payload);
-    var blockID = this.translateBlockIDs[payload.type]; //  TODO: .metadata
-    this.game.setBlock([payload.x, payload.y, payload.z], blockID);
-
-  } else if (name === 'position') {
+  if (name === 'position') {
     // TODO, yaw, pitch. to convert see http://wiki.vg/Protocol#Player_Position_And_Look
     this.log('player pos and look', payload);
     var ourY = payload.y - 1.62; // empirical  TODO: not playerHeight?
