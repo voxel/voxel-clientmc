@@ -16,7 +16,8 @@ module.exports = function(self) {
   });
 
   // if we exist (the webworker), socket is connected
-  self.bot.client.emit('connect');
+  //self.bot.client.emit('connect'); // actually, don't let it send the username; read back TODO: fix
+  self.bot.client.state = 'login'; // go directly to login, skip handshake
 
   console.log('mf-worker bot',self.bot);
 
