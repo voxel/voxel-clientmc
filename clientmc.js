@@ -252,15 +252,19 @@ ClientMC.prototype.enable = function() {
   });
   */
 
-  // create bot
+  // create bot TODO: fully move to mf-worker
+  /*
   this.bot = mineflayer.createBot({
     username: username,
     stream: this.websocketStream,
   });
+  */
 
   this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
 
   this.voxelChunks = {};
+
+  /* TODO
 
   // WebSocket to server proxy (wsmc)
   var self = this;
@@ -314,6 +318,7 @@ ClientMC.prototype.enable = function() {
 
     self.commands.isConnectedToServer = true;
   });
+  */
 
   var maxId = 255; // TODO: 4096?
 
