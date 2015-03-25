@@ -6,6 +6,7 @@ var websocket_stream = require('websocket-stream');
 var ever = require('ever');
 var tellraw2dom = require('tellraw2dom');
 var webworkify = require('webworkify');
+var workerstream = require('workerstream');
 var vec3Object = require('vec3'); // note: object type used by mineflayer, NOT gl-vec3 which is just a typed array :(
 
 module.exports = function(game, opts) {
@@ -237,6 +238,13 @@ ClientMC.prototype.enable = function() {
   } else {
     username = hash.substring(1); // remove #
   }
+
+  this.mfworker = webworkify(require('./mf-worker.js'));
+  this.mfworkerStream = workerstream(this.mfworker);
+  this.mfworkerStream.write('test');
+  this.mfworkerStream.on('data', function(data) {
+    console.log('mfworkerStream data',data);
+  });
 
   // create bot
   this.bot = mineflayer.createBot({
