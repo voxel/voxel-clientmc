@@ -15,6 +15,7 @@
     "ndarray": "^1.0.14",
     "tellraw2dom": "0.0.4",
     "vec3": "^0.1.3",
+    "websocket-stream": "^1.4.0",
     "webworkify": "~0.1.0",
     "wsmc": "git://github.com/deathcap/wsmc.git#master"
   },

@@ -1,7 +1,8 @@
 'use strict';
 
 var ndarray = require('ndarray');
-var mineflayer = require('wsmc/mineflayer-ws');
+var mineflayer = require('wsmc/mineflayer-stream');
+var websocket_stream = require('websocket-stream');
 var ever = require('ever');
 var tellraw2dom = require('tellraw2dom');
 var webworkify = require('webworkify');
@@ -217,8 +218,6 @@ function ClientMC(game, opts) {
       default: 'missing'
   };
     
-  this.mcPlayerHeight = 1.74; // from https://github.com/superjoe30/mineflayer/blob/4daa1f8a1f4282755b723df4bb748f6602784744/lib/plugins/physics.js#L23 - tested with a binary search
-
   this.enable();
 }
 
@@ -241,7 +240,8 @@ ClientMC.prototype.enable = function() {
 
   // create bot
   this.bot = mineflayer.createBot({
-    username: username
+    username: username,
+    stream: websocket_stream(this.opts.url)
   });
 
   this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
