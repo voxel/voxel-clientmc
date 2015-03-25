@@ -241,15 +241,21 @@ ClientMC.prototype.enable = function() {
 
   this.mfworker = webworkify(require('./mf-worker.js'));
   this.mfworkerStream = workerstream(this.mfworker);
+  this.websocketStream = websocket_stream(this.opts.url);
+
+  this.websocketStream.pipe(this.mfworkerStream);
+
+  /*
   this.mfworkerStream.write('test');
   this.mfworkerStream.on('data', function(data) {
     console.log('mfworkerStream data',data);
   });
+  */
 
   // create bot
   this.bot = mineflayer.createBot({
     username: username,
-    stream: websocket_stream(this.opts.url)
+    stream: this.websocketStream,
   });
 
   this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
