@@ -21,6 +21,7 @@
     "websocket-stream": "^1.4.0",
     "webworkify": "^1.0.2",
     "workerstream": "^1.2.1",
+    "tobuffer-stream": "^1.0.0",
     "wsmc": "git://github.com/deathcap/wsmc.git#master"
   },
   "scripts": {
