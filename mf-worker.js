@@ -9,7 +9,7 @@ var Writable = require('stream').Writable;
 module.exports = function(self) {
   console.log('mf-worker initializing',self);
 
-  self.readStream = ParentStream().pipe(toBufferStream);
+  self.readStream = ParentStream().pipe(toBufferStream); // TODO: divert non-packet data
   self.writeStream = Writable();
   self.writeStream._write = function(chunk, encoding, next) {
     console.log('write',chunk);
@@ -17,7 +17,6 @@ module.exports = function(self) {
     self.postMessage({cmd: 'packet', data: arrayBuffer}, [arrayBuffer]); // transferrable; arrayBuffer now deleted
     next();
   };
-
 
   self.duplexStream = duplexer(self.writeStream, self.readStream);
 
@@ -32,12 +31,12 @@ module.exports = function(self) {
   console.log('mf-worker bot',self.bot);
 
   self.bot.on('game', function() {
-    console.log('Spawn position: '+JSON.stringify(self.bot.spawnPoint));
-    self.bot.chat('hello from mfworker');
+    console.log('mf-worker spawn position: '+JSON.stringify(self.bot.spawnPoint));
+    self.postMessage({cmd: 'spawn', spawnPoint: self.bot.spawnPoint});
   });
 
   self.bot.on('kicked', function(reason) {
-    console.log('mf-worker bot kicked because:',reason);
+    self.postMessage({cmd: 'kicked', reason: reason});
   });
 
   self.bot.on('message', function(message) {

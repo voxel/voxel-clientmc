@@ -226,11 +226,24 @@ function ClientMC(game, opts) {
 // handlers called from mfworker
 ClientMC.prototype.packet = function(event) {
   this.websocketStream.write(typedArrayToBuffer(event.data));
-}
+};
 
 ClientMC.prototype.chat = function(event) {
   this.console.logNode(tellraw2dom(event.message.json));
-}
+};
+
+ClientMC.prototype.spawn = function(event) {
+  this.console.log('Spawn position: '+JSON.stringify(event.spawnPoint));
+  this.game.controls.target().avatar.position.x = event.spawnPoint.x;
+  this.game.controls.target().avatar.position.y = event.spawnPoint.y+50; // give some space to fall while chunks load TODO: move after all chunks load instead
+  this.game.controls.target().avatar.position.z = event.spawnPoint.z;
+
+  this.commands.isConnectedToServer = true;
+};
+
+ClientMC.prototype.kicked = function(event) {
+  window.alert('Disconnected from server: '+event.reason); // TODO: console, also for chat
+};
 
 ClientMC.prototype.enable = function() {
   this.log('voxel-clientmc initializing...');
@@ -275,13 +288,11 @@ ClientMC.prototype.enable = function() {
     self.websocketStream.pipe(self.mfworkerStream);
   });
 
-  // create bot TODO: fully move to mf-worker
-  /*
-  this.bot = mineflayer.createBot({
-    username: username,
-    stream: this.websocketStream,
+  var self = this;
+  if (this.console) this.console.widget.on('input', this.onConsoleInput = function(text) {
+    console.log('TODO: ',text);
+    //self.bot.chat(text); // TODO: call in mfworker
   });
-  */
 
   this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
 
@@ -301,14 +312,6 @@ ClientMC.prototype.enable = function() {
     self.game.plugins.disable('voxel-clientmc');
   });
 
-  var self = this;
-  this.bot.on('message', function(message) {
-    self.console.logNode(tellraw2dom(message.json));
-  });
-
-  if (this.console) this.console.widget.on('input', this.onConsoleInput = function(text) {
-    self.bot.chat(text);
-  });
 
   // block events
 
