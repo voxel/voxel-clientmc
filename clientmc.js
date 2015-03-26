@@ -8,6 +8,7 @@ var tellraw2dom = require('tellraw2dom');
 var webworkify = require('webworkify');
 var workerstream = require('workerstream');
 var vec3Object = require('vec3'); // note: object type used by mineflayer, NOT gl-vec3 which is just a typed array :(
+var typedArrayToBuffer = require('typedarray-to-buffer');
 
 module.exports = function(game, opts) {
   return new ClientMC(game, opts);
@@ -247,15 +248,22 @@ ClientMC.prototype.enable = function() {
     self.mfworker = webworkify(require('./mf-worker.js'));
     self.mfworkerStream = workerstream(self.mfworker);
 
+    // handle outgoing mfworker data and commands
+    self.mfworkerStream.on('data', function(data) {
+      console.log('mfworkerStream data',data);
+      if (data.packet) {
+        self.websocketStream.write(typedArrayToBuffer(data.packet));
+      } else if (data.chat) {
+        self.console.logNode(tellraw2dom(data.chat.json));
+      } else {
+        console.log('TODO: unhandled mfworker',data);
+        // TODO: control commands, bot actions
+      }
+    });
+
+    // pipe incoming wsmc data to mfworker
     self.websocketStream.pipe(self.mfworkerStream);
   });
-
-  /*
-  this.mfworkerStream.write('test');
-  this.mfworkerStream.on('data', function(data) {
-    console.log('mfworkerStream data',data);
-  });
-  */
 
   // create bot TODO: fully move to mf-worker
   /*
