@@ -2,17 +2,20 @@
 
 var ParentStream = require('workerstream/parent');
 var mineflayer = require('wsmc/mineflayer-stream');
-
+var duplexer = require('duplexer');
 var toBufferStream = require('tobuffer-stream');
 
 module.exports = function(self) {
   console.log('mf-worker initializing',self);
 
-  self.parentStream = ParentStream();
+  self.readStream = ParentStream().pipe(toBufferStream);
+  self.writeStream = self.readStream; // TODO: post back to main
+
+  self.duplexStream = duplexer(self.readStream, self.writeStream);
 
   self.bot = mineflayer.createBot({
     username: 'user1', // TODO
-    stream: self.parentStream.pipe(toBufferStream),
+    stream: self.duplexStream,
   });
 
   // if we exist (the webworker), socket is connected
