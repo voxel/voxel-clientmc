@@ -245,6 +245,37 @@ ClientMC.prototype.kicked = function(event) {
   window.alert('Disconnected from server: '+event.reason); // TODO: console, also for chat
 };
 
+ClientMC.prototype.error = function(event) {
+  this.console.log('Disconnected with error: ' + event.error);
+  this.game.plugins.disable('voxel-clientmc');
+};
+
+ClientMC.prototype.close = function(event) {
+  this.console.log('Websocket closed');
+  this.game.plugins.disable('voxel-clientmc');
+};
+
+ClientMC.prototype.setBlock = function(event) {
+  this.game.setBlock(event.position, event.value);
+};
+
+ClientMC.prototype.chunks = function(event) {
+  for (var key in event.chunks) {
+    var chunk = event.chunks[key];
+
+    console.log('showChunk',key);
+
+    // sending ndarray over postMessage loses prototype (cloning algorithm); reconstitute it TODO: optimize
+    var realChunk = ndarray(chunk.data,
+        [chunk._shape0, chunk._shape1, chunk._shape2],
+        [chunk._stride0, chunk._stride1, chunk._stride2],
+        chunk.offset);
+    realChunk.position = chunk.position;
+
+    this.game.showChunk(realChunk);
+  };
+};
+
 ClientMC.prototype.enable = function() {
   this.log('voxel-clientmc initializing...');
 
@@ -269,6 +300,8 @@ ClientMC.prototype.enable = function() {
 
     self.mfworker = webworkify(require('./mf-worker.js'));
     self.mfworkerStream = workerstream(self.mfworker);
+
+    self.mfworkerStream.write({cmd: 'setTranslateBlockIDs', translateBlockIDs: self.translateBlockIDs});
 
     // handle outgoing mfworker data and commands
     self.mfworkerStream.on('data', function(event) {
@@ -296,28 +329,11 @@ ClientMC.prototype.enable = function() {
 
   this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
 
-  this.voxelChunks = {};
+  this.voxelChunks = {}; // TODO: use this?
 
   /* TODO
 
-  // WebSocket to server proxy (wsmc)
-  var self = this;
-  this.bot.on('error', function(err) {
-    self.log('WebSocket error', err);
-    console.log('WebSocket error',err);
-    self.game.plugins.disable('voxel-clientmc');
-  });
-  this.bot.on('close', function() {
-    self.log('WebSocket closed');
-    self.game.plugins.disable('voxel-clientmc');
-  });
-
-
   // block events
-
-  this.bot.on('chunkColumnLoad', function(point) {
-    self.addColumn(point);
-  });
 
   var pos = [0,0,0];
   this.bot.on('blockUpdate', function(oldBlock, newBlock) {
@@ -331,19 +347,6 @@ ClientMC.prototype.enable = function() {
   });
   // TODO: also handle mass block update (event? would like to optimize multi_block_change, but..)
 
-
-  this.bot.on('kicked', function(reason) {
-    window.alert('Disconnected from server: '+reason); // TODO: console, also for chat
-  });
-
-  this.bot.on('game', function() {
-    self.console.log('Spawn position: '+JSON.stringify(self.bot.spawnPoint));
-    self.game.controls.target().avatar.position.x = self.bot.spawnPoint.x;
-    self.game.controls.target().avatar.position.y = self.bot.spawnPoint.y+50; // give some space to fall while chunks load TODO: move after all chunks load instead
-    self.game.controls.target().avatar.position.z = self.bot.spawnPoint.z;
-
-    self.commands.isConnectedToServer = true;
-  });
   */
 
   var maxId = 255; // TODO: 4096?
@@ -377,35 +380,6 @@ ClientMC.prototype.disable = function() {
   if (this.clearPositionUpdateTimer) this.clearPositionUpdateTimer();
 };
 
-ClientMC.prototype.decodePacket = function(data) { // based on https://github.com/deathcap/wsmc/tree/master/examples/mcwebchat
-  if (!(data instanceof Uint8Array)) {
-    return undefined;
-  }
-
-  // convert typed array to NodeJS buffer for minecraft-protocol's API
-  // TODO: is this conversion fast? backed by ArrayBuffer in Browserify 3, see https://npmjs.org/package/native-buffer-browserify
-  //  but is this the right way to "convert" from an ArrayBuffer to a Buffer, without copying?
-  data._isBuffer = true;
-  var buffer = new Buffer(data);
-
-
-  var state = 'play';
-  var isServer = false;
-  var packetsToParse = {packet: true};
-  var result = minecraft_protocol.protocol.parsePacket(buffer, state, isServer, packetsToParse);
-  if (!result || result.error) {
-    this.log('protocol parse error: ' + JSON.stringify(result.error));
-    return undefined;
-  }
-
-  var payload = result.results;
-  var id = result.results.id;
-  var name = minecraft_protocol.protocol.packetNames[minecraft_protocol.protocol.states.PLAY].toClient[id];
-
-  return {name:name, id:id, payload:payload};
-};
-
-
 // call the browser console.log() function with arguments as an array
 ClientMC.prototype.nativeConsoleLog = function(args) {
   Function.prototype.bind.call(console.log, console).apply(console, args); // see http://stackoverflow.com/questions/5538972
@@ -435,110 +409,6 @@ ClientMC.prototype.handlePacket = function(name, payload) {
     this.sendPacket('position', payload);
 };
 */
-
-// convert MC chunk format to ours, caching to be ready for missingChunk()
-var CHUNKS_ADDED = 0;
-ClientMC.prototype.addColumn = function(point) {
-  if (CHUNKS_ADDED >= 2) return; // only a few for testing
-  this.console.log('Chunk load ('+point.x+','+point.y+','+point.z+')');
-  var chunkX = point.x;
-  var chunkZ = point.z;
-
-  var started = window.performance.now();
-  // call blockAt around chunk size TODO: optimized iterator
-  var v = vec3Object(chunkX, 0, chunkZ);
-  var a = [chunkX, 0, chunkZ];
-  var chunkSizeX = 16;
-  var chunkSizeY = 256;
-  var chunkSizeZ = 16;
-  for (var i = chunkSizeY - 1; i; i -= 1) {
-    for (var j = 0; j < chunkSizeX; j += 1) {
-      for (var k = 0; k < chunkSizeZ; k += 1) {
-
-        v.x = a[0] = chunkX + j;
-        v.y = a[1] = i;
-        v.z = a[2] = chunkZ + k;
-
-        var blockObject = this.bot.blockAt(v);
-        if (!blockObject) continue; // TODO: fix out of bounds?
-
-        var mcBlockID = blockObject.type;
-        var ourBlockID = this.translateBlockIDs[mcBlockID]; // TODO: metadata?
-
-        var chunkIndex = this.game.voxels.chunkAtCoordinates(a[0], a[1], a[2]);
-        var chunkKey = chunkIndex.join('|');
-        var chunk = this.game.voxels.chunks[chunkKey];
-        if (!chunk) {
-          // create new chunk TODO: refactor, similar chunk data store object creation in voxel-land
-          var width = this.game.chunkSize;
-          var pad = this.game.chunkPad;
-          var buffer = new ArrayBuffer((width+pad) * (width+pad) * (width+pad) * this.game.arrayType.BYTES_PER_ELEMENT);
-          var voxels = new self.game.arrayType(buffer);
-          chunk = ndarray(new self.game.arrayType(buffer), [width+pad, width+pad, width+pad]);
-          chunk.position = [chunkIndex[0], chunkIndex[1], chunkIndex[2]];
-
-          //var h = pad >>> 1;
-          //var chunkUnpadded = chunk.lo(h,h,h).hi(width,width,width); // for easier access
-          this.game.voxels.chunks[chunkKey] = chunk;
-          console.log('Created new chunk '+chunkKey);
-        }
-
-        //this.game.setBlock(a, ourBlockID); // instead, faster direct chunk access below (avoids events)
-        //this.game.addChunkToNextUpdate({position: chunkIndex});
-        this.game.chunksNeedsUpdate[chunkKey] = this.game.voxels.chunks[chunkKey]; // dirty for showChunk TODO: accumulate all first, then one showChunk at end
-        //this.game.voxels.voxelAtPosition(a, ourBlockID);
-        var mask = this.game.voxels.chunkMask;
-        var h = this.game.voxels.chunkPadHalf;
-        var mx = a[0] & mask;
-        var my = a[1] & mask;
-        var mz = a[2] & mask;
-        chunk.set(mx+h, my+h, mz+h, ourBlockID);
-      }
-    }
-  }
-  var took = window.performance.now() - started;
-  console.log('chunk added in '+took);
-  CHUNKS_ADDED += 1;
-
-/*
-  var offset = 0;
-  var size = 4096;
-  var s = this.game.chunkSize + this.game.chunkPad;
-  var length = column.blockType.length;
-  for (var chunkY = 0; chunkY < length; chunkY += 1) {
-    var miniChunk = column.blockType[chunkY];
-    if (miniChunk === null) continue; // skip 100% solid air
-
-    // translate network block IDs
-    for (var i = 0; i < miniChunk.length; i += 1) {
-        var mcBlockID = miniChunk[i];
-        var ourBlockID = this.translateBlockIDs[mcBlockID];
-        //vChunk.data[i] = ourBlockID;
-        miniChunk[i] = ourBlockID;
-    }
-
-    var vChunk = ndarray(new this.game.arrayType(s*s*s), [s,s,s]);
-
-    // transpose since MC uses XZY but voxel-engine XYZ
-    // TODO: changes stride..requires clients to use ndarray API get(), not access .data directly..
-    //  just switch to 100% ndarray-based voxel-engine?
-    for (var x = 0; x < vChunk.shape[0]; x += 1) {
-      for (var z = 0; z < vChunk.shape[1]; z += 1) {
-        for (var y = 0; y < vChunk.shape[2]; y += 1) {
-          vChunk.set(z+2, y+2, x+2, miniChunk[x | z<<4 | y<<8]);
-        }
-      }
-    }
-
-    // save TODO: avoid recreating array, mutate in-place?
-    var key = [chunkX, chunkY, chunkZ].join('|');
-    vChunk.position = [chunkX, chunkY, chunkZ];
-    this.voxelChunks[key] = vChunk;
-  }
-
-  // TODO: metadata,light,sky,add,biome
-  */
-};
 
 ClientMC.prototype.missingChunk = function(pos) {
   var chunk = this.voxelChunks[pos.join('|')];
