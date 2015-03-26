@@ -13,8 +13,8 @@ module.exports = function(self) {
   self.writeStream = Writable();
   self.writeStream._write = function(chunk, encoding, next) {
     console.log('write',chunk);
-    self.postMessage({packet: chunk}); // TODO: transferrable, [chunk], but has to be correct data type (ArrayBuffer)
-    // TODO: handle message on main
+    var arrayBuffer = chunk.buffer;
+    self.postMessage({cmd: 'packet', data: arrayBuffer}, [arrayBuffer]); // transferrable; arrayBuffer now deleted
     next();
   };
 
@@ -43,7 +43,7 @@ module.exports = function(self) {
   self.bot.on('message', function(message) {
     //self.console.logNode(tellraw2dom(message.json)); // TODO: send back to parent
     console.log('mf-worker chat message', message);
-    self.postMessage({chat: message});
+    self.postMessage({cmd: 'chat', message: message});
   });
 };
 

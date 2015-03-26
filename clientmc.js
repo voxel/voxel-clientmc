@@ -249,15 +249,16 @@ ClientMC.prototype.enable = function() {
     self.mfworkerStream = workerstream(self.mfworker);
 
     // handle outgoing mfworker data and commands
-    self.mfworkerStream.on('data', function(data) {
-      console.log('mfworkerStream data',data);
-      if (data.packet) {
-        self.websocketStream.write(typedArrayToBuffer(data.packet));
-      } else if (data.chat) {
-        self.console.logNode(tellraw2dom(data.chat.json));
+    self.mfworkerStream.on('data', function(event) {
+      console.log('mfworkerStream event',event);
+      var cmd = event.cmd;
+      if (cmd === 'packet') {
+        self.websocketStream.write(typedArrayToBuffer(event.data));
+      } else if (cmd === 'chat') {
+        self.console.logNode(tellraw2dom(event.message.json));
       } else {
-        console.log('TODO: unhandled mfworker',data);
-        // TODO: control commands, bot actions
+        console.log('TODO: unhandled mfworker',cmd,event);
+        // TODO: more
       }
     });
 
