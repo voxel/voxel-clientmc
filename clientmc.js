@@ -272,7 +272,7 @@ ClientMC.prototype.enable = function() {
 
     // handle outgoing mfworker data and commands
     self.mfworkerStream.on('data', function(event) {
-      console.log('mfworkerStream event',event);
+      //console.log('mfworkerStream event',event);
       var cmd = event.cmd;
       var f = self[cmd];
       if (!f) {
@@ -290,7 +290,7 @@ ClientMC.prototype.enable = function() {
 
   var self = this;
   if (this.console) this.console.widget.on('input', this.onConsoleInput = function(text) {
-    console.log('TODO: ',text);
+    self.mfworkerStream.write({cmd: 'chat', text: text});
     //self.bot.chat(text); // TODO: call in mfworker
   });
 
