@@ -223,6 +223,15 @@ function ClientMC(game, opts) {
   this.enable();
 }
 
+// handlers called from mfworker
+ClientMC.prototype.packet = function(event) {
+  this.websocketStream.write(typedArrayToBuffer(event.data));
+}
+
+ClientMC.prototype.chat = function(event) {
+  this.console.logNode(tellraw2dom(event.message.json));
+}
+
 ClientMC.prototype.enable = function() {
   this.log('voxel-clientmc initializing...');
 
@@ -252,14 +261,14 @@ ClientMC.prototype.enable = function() {
     self.mfworkerStream.on('data', function(event) {
       console.log('mfworkerStream event',event);
       var cmd = event.cmd;
-      if (cmd === 'packet') {
-        self.websocketStream.write(typedArrayToBuffer(event.data));
-      } else if (cmd === 'chat') {
-        self.console.logNode(tellraw2dom(event.message.json));
-      } else {
-        console.log('TODO: unhandled mfworker',cmd,event);
-        // TODO: more
+      var f = self[cmd];
+      if (!f) {
+        console.log('Unhandled mfworker cmd',cmd,event);
+        return;
       }
+
+      // call method on ourself with arguments
+      f.call(self, event);
     });
 
     // pipe incoming wsmc data to mfworker
