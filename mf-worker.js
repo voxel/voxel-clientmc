@@ -4,14 +4,22 @@ var ParentStream = require('workerstream/parent');
 var mineflayer = require('wsmc/mineflayer-stream');
 var duplexer = require('duplexer');
 var toBufferStream = require('tobuffer-stream');
+var Writable = require('stream').Writable;
 
 module.exports = function(self) {
   console.log('mf-worker initializing',self);
 
   self.readStream = ParentStream().pipe(toBufferStream);
-  self.writeStream = self.readStream; // TODO: post back to main
+  self.writeStream = Writable();
+  self.writeStream._write = function(chunk, encoding, next) {
+    console.log('write',chunk);
+    self.postMessage({data: chunk}); // TODO: transferrable
+    // TODO: handle message on main
+    next();
+  };
 
-  self.duplexStream = duplexer(self.readStream, self.writeStream);
+
+  self.duplexStream = duplexer(self.writeStream, self.readStream);
 
   self.bot = mineflayer.createBot({
     username: 'user1', // TODO
@@ -31,12 +39,5 @@ module.exports = function(self) {
   self.bot.on('kicked', function(reason) {
     console.log('mf-worker bot kicked because:',reason);
   });
-
-  /*
-  self.onmessage = function(event) {
-    console.log('mf-worker onmessage',event);
-    self.postMessage({whats: 'up'});
-  };
-  */
 };
 
