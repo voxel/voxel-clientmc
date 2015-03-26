@@ -120,8 +120,7 @@ module.exports = function(self) {
           var ourBlockID = self.translateBlockIDs[mcBlockID]; // TODO: metadata?
 
           //var chunkIndex = this.game.voxels.chunkAtCoordinates(a[0], a[1], a[2]);
-          var chunkBits = 5; // assume 1<<5 chunk size
-          var chunkIndex = [a[0] >> chunkBits, a[1] >> chunkBits, a[2] >> chunkBits];
+          var chunkIndex = [a[0] >> self.chunkBits, a[1] >> self.chunkBits, a[2] >> self.chunkBits];
 
           var chunkKey = chunkIndex.join('|');
 
@@ -130,10 +129,10 @@ module.exports = function(self) {
 
           if (!chunk) {
             // create new chunk TODO: refactor, similar chunk data store object creation in voxel-land
-            var width = 32; // this.game.chunkSize; TODO: get all settings from main thread
-            var pad = 4; //this.game.chunkPad;
-            var buffer = new ArrayBuffer((width+pad) * (width+pad) * (width+pad) * 2); // this.game.arrayType.BYTES_PER_ELEMENT);
-            var arrayType = Uint16Array; // self.game.arrayType
+            var width = self.chunkSize;
+            var pad = self.chunkPad;
+            var buffer = new ArrayBuffer((width+pad) * (width+pad) * (width+pad) * self.arrayTypeSize);
+            var arrayType = {1:Uint8Array, 2:Uint16Array, 4:Uint32Array}[self.arrayTypeSize];
             var voxels = new arrayType(buffer);
             chunk = ndarray(new arrayType(buffer), [width+pad, width+pad, width+pad]);
             chunk.position = [chunkIndex[0], chunkIndex[1], chunkIndex[2]];
@@ -153,8 +152,8 @@ module.exports = function(self) {
           //this.game.chunksNeedsUpdate[chunkKey] = this.game.voxels.chunks[chunkKey]; // dirty for showChunk TODO: accumulate all first, then one showChunk at end
 
           //this.game.voxels.voxelAtPosition(a, ourBlockID);
-          var mask = (1<<5) - 1; //this.game.voxels.chunkMask;
-          var h = 4/2; //this.game.voxels.chunkPadHalf;
+          var mask = self.chunkMask;
+          var h = self.chunkPadHalf;
           var mx = a[0] & mask;
           var my = a[1] & mask;
           var mz = a[2] & mask;
@@ -177,8 +176,10 @@ module.exports = function(self) {
     self.bot.chat(event.text);
   };
 
-  self.setTranslateBlockIDs = function(event) {
-    self.translateBlockIDs = event.translateBlockIDs;
+  self.setVariables = function(event) {
+    for (var key in event) {
+      self[key] = event[key];
+    }
   };
 };
 

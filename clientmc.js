@@ -301,7 +301,16 @@ ClientMC.prototype.enable = function() {
     self.mfworker = webworkify(require('./mf-worker.js'));
     self.mfworkerStream = workerstream(self.mfworker);
 
-    self.mfworkerStream.write({cmd: 'setTranslateBlockIDs', translateBlockIDs: self.translateBlockIDs});
+    // pass some useful data to the worker
+    self.mfworkerStream.write({cmd: 'setVariables',
+      translateBlockIDs: self.translateBlockIDs,
+      chunkSize: self.game.chunkSize,
+      chunkPad: self.game.chunkPad,
+      chunkPadHalf: self.game.voxels.chunkPadHalf,
+      chunkMask: self.game.voxels.chunkMask,
+      chunkBits: self.game.voxels.chunkBits,
+      arrayTypeSize: self.game.arrayType.BYTES_PER_ELEMENT
+    });
 
     // handle outgoing mfworker data and commands
     self.mfworkerStream.on('data', function(event) {
