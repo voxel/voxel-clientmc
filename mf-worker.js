@@ -99,6 +99,76 @@ module.exports = function(self) {
     var chunkZ = point.z;
 
     var started = self.performance.now();
+
+    for (var chunkY = 0; chunkY < 16*16; chunkY += 16) {
+
+      var column = self.bot._chunkColumn(chunkX, chunkZ);
+      if (!column) continue;
+
+      var buffer = column.blockType[chunkY >> 4]; // for MC 1.8, block type is 16-bit array. TODO: support earlier, 8-bit blockType, add, meta (separated)
+      //console.log('array',chunkY,array);
+      if (!buffer) continue; // TODO: set to all air (probably already is, but no guarantee)
+
+      for (var i = 0; i < buffer.length; i += 2) {
+        var blockType = buffer.readUInt16LE(i); // TODO: Uint16Array data view typed array instead?
+
+        var mcBlockID = blockType >> 4;
+        var metadata = blockType & 0xf;
+
+        //var blockIndex = x + self.chunkSize * z + self.chunkSize * self.chunkSize * y;
+        var blockIndex = i >> 1; // since 2 bytes
+        var dx = blockIndex & 0xf;
+        var dz = (blockIndex >> 4) & 0xf;
+        var dy = blockIndex >> 8;
+
+        var x = chunkX + dx;
+        var y = dy;
+        var z = chunkZ + dz;
+
+
+        var ourBlockID = self.translateBlockIDs[mcBlockID]; // TODO: metadata?
+
+        //var chunkIndex = this.game.voxels.chunkAtCoordinates(a[0], a[1], a[2]);
+        var chunkIndex = [x >> self.chunkBits, y >> self.chunkBits, z >> self.chunkBits];
+
+        var chunkKey = chunkIndex.join('|');
+
+        //var chunk = this.game.voxels.chunks[chunkKey];
+        var chunk = chunkCache[chunkKey];
+
+        if (!chunk) {
+          // create new chunk TODO: refactor, similar chunk data store object creation in voxel-land
+          var width = self.chunkSize;
+          var pad = self.chunkPad;
+          var buffer = new ArrayBuffer((width+pad) * (width+pad) * (width+pad) * self.arrayTypeSize);
+          var arrayType = {1:Uint8Array, 2:Uint16Array, 4:Uint32Array}[self.arrayTypeSize];
+          var voxels = new arrayType(buffer);
+          chunk = ndarray(new arrayType(buffer), [width+pad, width+pad, width+pad]);
+          chunk.position = [chunkIndex[0], chunkIndex[1], chunkIndex[2]];
+
+          //this.game.voxels.chunks[chunkKey] = chunk;
+          chunkCache[chunkKey] = chunk;
+
+          console.log('Created new chunk '+chunkKey);
+        }
+
+        //this.game.setBlock(a, ourBlockID); // instead, faster direct chunk access below (avoids events)
+        //this.game.addChunkToNextUpdate({position: chunkIndex});
+
+        //this.game.chunksNeedsUpdate[chunkKey] = this.game.voxels.chunks[chunkKey]; // dirty for showChunk TODO: accumulate all first, then one showChunk at end
+
+        //this.game.voxels.voxelAtPosition(a, ourBlockID);
+        var mask = self.chunkMask;
+        var h = self.chunkPadHalf;
+        var mx = x & mask;
+        var my = y & mask;
+        var mz = z & mask;
+        chunk.set(mx+h, my+h, mz+h, ourBlockID);
+
+      }
+    }
+
+    /*
     // call blockAt around chunk size TODO: optimized iterator
     var v = vec3Object(chunkX, 0, chunkZ);
     var a = [chunkX, 0, chunkZ];
@@ -161,6 +231,8 @@ module.exports = function(self) {
         }
       }
     }
+    */
+
     var took = self.performance.now() - started;
     console.log('chunk added in '+took);
     CHUNKS_ADDED += 1;

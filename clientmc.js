@@ -263,7 +263,7 @@ ClientMC.prototype.chunks = function(event) {
   for (var key in event.chunks) {
     var chunk = event.chunks[key];
 
-    console.log('showChunk',key);
+    //console.log('showChunk',key);
 
     // sending ndarray over postMessage loses prototype (cloning algorithm); reconstitute it TODO: optimize
     var realChunk = ndarray(chunk.data,
