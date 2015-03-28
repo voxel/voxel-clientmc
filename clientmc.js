@@ -277,7 +277,14 @@ ClientMC.prototype.chunks = function(event) {
 };
 
 ClientMC.prototype.enable = function() {
-  this.log('voxel-clientmc initializing...');
+  // only begin connecting to server after voxel-engine is initialized,
+  // since it shows chunks (game.showChunk) which requires engine initialization,
+  // but plugins are "enabled" before the engine fully is
+  this.game.on('engine-init', this.connectServer.bind(this));
+};
+
+ClientMC.prototype.connectServer = function() {
+  this.log('voxel-clientmc connecting...');
 
   this.game.plugins.disable('voxel-land');   // also provides chunks, use ours instead
   //this.game.plugins.get('voxel-player').homePosition = [-248, 77, -198] // can't do this TODO
@@ -336,9 +343,9 @@ ClientMC.prototype.enable = function() {
     //self.bot.chat(text); // TODO: call in mfworker
   });
 
-  this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
+  //this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
 
-  this.voxelChunks = {}; // TODO: use this?
+  //this.voxelChunks = {}; // TODO: use this?
 
   /* TODO
 
@@ -419,11 +426,11 @@ ClientMC.prototype.handlePacket = function(name, payload) {
 };
 */
 
+/*
 ClientMC.prototype.missingChunk = function(pos) {
   var chunk = this.voxelChunks[pos.join('|')];
   if (chunk === undefined) return;
 
   this.game.showChunk(chunk);
 };
-
-
+*/
