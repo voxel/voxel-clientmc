@@ -22,6 +22,7 @@ require('voxel-flight');
 require('voxel-gamemode');
 require('voxel-sprint');
 require('voxel-mine');
+require('voxel-decals');
 require('voxel-harvest');
 require('voxel-use');
 require('voxel-reach');
@@ -142,6 +143,7 @@ var main = function() {
       progressTexturesPrefix: 'destroy_stage_',
       progressTexturesCount: 9,
     },
+    'voxel-decals': {},
     // right-click to place block (etc.)
     'voxel-use': {},
     // handles 'break' event from voxel-mine (left-click hold breaks blocks), collects block and adds to inventory
