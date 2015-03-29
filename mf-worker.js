@@ -254,6 +254,11 @@ module.exports = function(self) {
     self.postMessage({cmd: 'chunks', chunks: chunkCache}); // TODO: transferrable
   };
 
+  self.bot.client.on('block_break_animation', function(event) {
+    console.log('block_break_animation',event);
+    self.postMessage({cmd: 'blockBreakAnimation', location:[event.location.x, event.location.y, event.location.z], destroyStage: event.destroyStage});
+  });
+
   // if we exist (the webworker), socket is connected
   self.bot.client.emit('connect');
 

@@ -15,7 +15,7 @@ module.exports = function(game, opts) {
 };
 
 module.exports.pluginInfo = {
-  loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry', 'voxel-console', 'voxel-commands', 'voxel-reach']
+  loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry', 'voxel-console', 'voxel-commands', 'voxel-reach', 'voxel-decals']
 };
 
 
@@ -33,6 +33,7 @@ function ClientMC(game, opts) {
   this.console = game.plugins.get('voxel-console'); // optional
   this.commands = game.plugins.get('voxel-commands'); // optional
   this.reachPlugin = game.plugins.get('voxel-reach') || 'voxel-clientmc requires voxel-reach plugin';
+  this.decalsPlugin = game.plugins.get('voxel-decals') || 'voxel-clientmc requires voxel-decals plugin';
 
   opts.url = opts.url || 'ws://'+document.location.hostname+':24444/server';
 
@@ -294,6 +295,34 @@ ClientMC.prototype.chunks = function(event) {
     this.game.addChunkToNextUpdate(realChunk);
     //this.game.showChunk(realChunk);
   };
+};
+
+ClientMC.prototype.blockBreakAnimation = function(event) {
+  var texture;
+
+  if (event.destroyStage < 0 || event.destroyStage > 9) {
+    texture = null; // remove
+  } else {
+    texture = 'destroy_stage_' + event.destroyStage;
+  }
+
+  // MC's break animations don't include the block face, so include them all
+  var normals = [
+    [1,0,0],
+    [-1,0,0],
+    [0,1,0],
+    [0,-1,0],
+    [0,0,1],
+    [0,0,-1]];
+
+  for (var i = 0; i < normals.length; ++i) {
+    var normal = normals[i];
+    if (texture)
+      this.decalsPlugin.change({position: event.location, normal: normal, texture: texture});
+    else
+      this.decalsPlugin.remove(event.location);
+  }
+  this.decalsPlugin.update();
 };
 
 ClientMC.prototype.enable = function() {

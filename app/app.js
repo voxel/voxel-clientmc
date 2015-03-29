@@ -147,7 +147,7 @@ var main = function() {
     // right-click to place block (etc.)
     'voxel-use': {},
     // handles 'break' event from voxel-mine (left-click hold breaks blocks), collects block and adds to inventory
-    'voxel-harvest': {},
+    //'voxel-harvest': {},
     'voxel-outline': {},
     'voxel-voila': {},
     'voxel-keys': {},
