@@ -282,6 +282,8 @@ module.exports = function(self) {
     }
   }
 
+  var swingInterval = null;
+
   self.digStart = function(event) {
     // TODO: higher-level dig api in mineflayer (currently, blocks.js dig() does both start and stop, and hardcodes face top)
     // this uses the low-level packet protocol interface
@@ -289,6 +291,13 @@ module.exports = function(self) {
       status: 0, // start digging
       location: {x:event.position[0], y:event.position[1], z:event.position[2]},
       face: normal2mcface(event.normal),
+    });
+
+    swingInterval = self.setInterval(function() {
+      self.bot.client.write('arm_animation', {
+        entityId: self.bot.entity.id,
+        animation: 1, // 0? swing arm http://wiki.vg/Protocol#Animation
+      }, 350); // TODO: stop hardcoding 350 ms
     });
   };
 
@@ -298,6 +307,9 @@ module.exports = function(self) {
       location: {x:event.position[0], y:event.position[1], z:event.position[2]}, // TODO: mineflayer sends x,y,z for this packet?!
       face: normal2mcface(event.normal),
     });
+
+    if (swingInterval) self.clearInterval(swingInterval);
+    swingInterval = null;
   };
 };
 
