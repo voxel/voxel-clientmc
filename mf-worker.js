@@ -285,6 +285,12 @@ module.exports = function(self) {
   var swingInterval = null;
 
   self.digStart = function(event) {
+    var block = self.bot.blockAt(vec3Object(event.position[0], event.position[1], event.position[2]));
+    if (!block) return;
+    self.bot.dig(block, function(err) {
+      console.log('dig:',err);
+    });
+    /*
     // TODO: higher-level dig api in mineflayer (currently, blocks.js dig() does both start and stop, and hardcodes face top)
     // this uses the low-level packet protocol interface
     self.bot.client.write('block_dig', {
@@ -299,9 +305,12 @@ module.exports = function(self) {
         animation: 1, // 0? swing arm http://wiki.vg/Protocol#Animation
       }, 350); // TODO: stop hardcoding 350 ms
     });
+    */
   };
 
   self.digStop = function(event) {
+    //self.bot.stopDigging(); // TODO: after get digTime right
+    /*
     self.bot.client.write('block_dig', {
       status: 1, // stop digging
       location: {x:event.position[0], y:event.position[1], z:event.position[2]}, // TODO: mineflayer sends x,y,z for this packet?!
@@ -310,6 +319,7 @@ module.exports = function(self) {
 
     if (swingInterval) self.clearInterval(swingInterval);
     swingInterval = null;
+  */
   };
 };
 

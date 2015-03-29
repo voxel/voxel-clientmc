@@ -371,6 +371,7 @@ ClientMC.prototype.connectServer = function() {
   // block events
   this.reachPlugin.on('start mining', function(target) { // TODO: remove events on disable
     console.log('start mining',target);
+    if (!target) return; // no target (air)
     self.mfworkerStream.write({cmd: 'digStart', position:target.voxel, normal:target.normal});
   });
   this.reachPlugin.on('stop mining', function(target) {
