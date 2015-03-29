@@ -74,7 +74,23 @@ function ClientMC(game, opts) {
       //31: 'shrubDead',
       //33: 'piston',
       //34: 'pistonHead',
-      35: 'wool',
+      //35: 'wool',
+      '35:0': 'woolWhite',
+      '35:1': 'woolOrange',
+      '35:2': 'woolMagenta',
+      '35:3': 'woolLight_blue',
+      '35:4': 'woolYellow',
+      '35:5': 'woolLime',
+      '35:6': 'woolPink',
+      '35:7': 'woolGray',
+      '35:8': 'woolSilver',
+      '35:9': 'woolCyan',
+      '35:10': 'woolPurple',
+      '35:11': 'woolBlue',
+      '35:12': 'woolBrown',
+      '35:13': 'woolGreen',
+      '35:14': 'woolRed',
+      '35:15': 'woolBlack',
       //36: ?
       //37: 'dandelion',
       //38: 'poppy',
@@ -314,6 +330,7 @@ ClientMC.prototype.connectServer = function() {
     // pass some useful data to the worker
     self.mfworkerStream.write({cmd: 'setVariables',
       translateBlockIDs: self.translateBlockIDs,
+      defaultBlockID: self.defaultBlockID,
       chunkSize: self.game.chunkSize,
       chunkPad: self.game.chunkPad,
       chunkPadHalf: self.game.voxels.chunkPadHalf,
@@ -368,21 +385,30 @@ ClientMC.prototype.connectServer = function() {
 
   */
 
-  var maxId = 255; // TODO: 4096?
+  var maxId = 4096; // 2^12 TODO: 2^16? for extended block IDs (plus metadata)
 
   // array MC block ID -> our block ID
-  // TODO: also support .metadata (MC block ID = 12-bits, meta = 4-bits, total 16-bits -> ours 16 bit)
+  // packs 4-bit metadata in LSBs (MC block ID = 12-bits, meta = 4-bits, total 16-bits -> ours 16 bit)
   this.translateBlockIDs = new this.game.arrayType(maxId);
-  for (var mcID = 0; mcID < this.translateBlockIDs.length; mcID += 1) {
-    this.translateBlockIDs[mcID] = this.registry.getBlockIndex(this.opts.mcBlocks.default);
-  }
+  this.defaultBlockID = this.opts.mcBlocks.default;
 
-  for (mcID in this.opts.mcBlocks) {
+  for (var mcID in this.opts.mcBlocks) {
+    var mcBlockID;
+    var mcMetaID;
+    if (mcID.indexOf(':') !== -1) {
+      var a = mcID.split(':');
+      mcBlockID = parseInt(a[0], 10);
+      mcMetaID = parseInt(a[1], 10);
+    } else {
+      mcBlockID = parseInt(mcID, 10);
+      mcMetaID = 0;
+    }
     var ourBlockName = this.opts.mcBlocks[mcID];
     var ourBlockID = this.registry.getBlockIndex(ourBlockName);
     if (ourBlockID === undefined)
       throw new Error('voxel-clientmc unrecognized block name: '+ourBlockName+' for MC '+mcID);
-    this.translateBlockIDs[mcID] = ourBlockID;
+    var mcPackedID = (mcBlockID << 4) | mcMetaID;
+    this.translateBlockIDs[mcPackedID] = ourBlockID;
   }
 
   // for chunk conversion - see voxel/chunker.js

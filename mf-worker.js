@@ -113,7 +113,7 @@ module.exports = function(self) {
         var blockType = buffer.readUInt16LE(i); // TODO: Uint16Array data view typed array instead?
 
         var mcBlockID = blockType >> 4;
-        var metadata = blockType & 0xf;
+        var mcMetaID = blockType & 0xf;
 
         //var blockIndex = x + self.chunkSize * z + self.chunkSize * self.chunkSize * y;
         var blockIndex = i >> 1; // since 2 bytes
@@ -126,7 +126,15 @@ module.exports = function(self) {
         var z = chunkZ + dz;
 
 
-        var ourBlockID = self.translateBlockIDs[mcBlockID]; // TODO: metadata?
+        var ourBlockID;
+        if (mcBlockID === 0) {
+          // air is always air TODO: custom air blocks?
+          ourBlockID = 0;
+        } else {
+          ourBlockID = self.translateBlockIDs[(mcBlockID << 4) | mcMetaID];
+          if (!ourBlockID) ourBlockID = self.translateBlockIDs[mcBlockID << 4]; // try 0 metadata
+          if (!ourBlockID) ourBlockID = self.defaultBlockID; // default replacement block
+        }
 
         //var chunkIndex = this.game.voxels.chunkAtCoordinates(a[0], a[1], a[2]);
         var chunkIndex = [x >> self.chunkBits, y >> self.chunkBits, z >> self.chunkBits];
