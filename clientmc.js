@@ -272,7 +272,10 @@ ClientMC.prototype.chunks = function(event) {
         chunk.offset);
     realChunk.position = chunk.position;
 
-    this.game.showChunk(realChunk);
+    console.log('Saving chunk',key);
+    this.game.voxels.chunks[key] = realChunk;
+    this.game.addChunkToNextUpdate(realChunk);
+    //this.game.showChunk(realChunk);
   };
 };
 
