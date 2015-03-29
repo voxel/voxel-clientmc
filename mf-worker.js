@@ -82,11 +82,26 @@ module.exports = function(self) {
     pos[0] = position.x;
     pos[1] = position.y;
     pos[2] = position.z;
-    var val = self.translateBlockIDs[newBlock.type];
+    var val = self.translateBlockID((newBlock.type << 4) | newBlock.metadata);
     self.postMessage({cmd: 'setBlock', position: pos, value: val});
     //self.game.setBlock(pos, val);
   });
   // TODO: also handle mass block update (event? would like to optimize multi_block_change, but..)
+
+  // Translate packed MC block ID (lower 4 bits metadata, upper 12 block) to 16-bit voxel ID
+  self.translateBlockID = function(mcPackedID) {
+    var ourBlockID;
+    if (mcPackedID === 0) {
+      // air is always air TODO: custom air blocks?
+      ourBlockID = 0;
+    } else {
+      ourBlockID = self.translateBlockIDs[mcPackedID]; // indexed by (12-bit block ID << 4) | (4-bit metadata)
+      if (!ourBlockID) ourBlockID = self.translateBlockIDs[mcPackedID & ~0xf]; // try 0 metadata
+      if (!ourBlockID) ourBlockID = self.defaultBlockID; // default replacement block
+    }
+
+    return ourBlockID;
+  };
 
   var chunkCache = {}; // TODO: read from existing? if need to merge
 
@@ -110,10 +125,10 @@ module.exports = function(self) {
       if (!buffer) continue; // TODO: set to all air (probably already is, but no guarantee)
 
       for (var i = 0; i < buffer.length; i += 2) {
-        var blockType = buffer.readUInt16LE(i); // TODO: Uint16Array data view typed array instead?
+        var mcPackedID = buffer.readUInt16LE(i); // TODO: Uint16Array data view typed array instead?
 
-        var mcBlockID = blockType >> 4;
-        var mcMetaID = blockType & 0xf;
+        //var mcBlockID = blockType >> 4;
+        //var mcMetaID = blockType & 0xf;
 
         //var blockIndex = x + self.chunkSize * z + self.chunkSize * self.chunkSize * y;
         var blockIndex = i >> 1; // since 2 bytes
@@ -126,15 +141,7 @@ module.exports = function(self) {
         var z = chunkZ + dz;
 
 
-        var ourBlockID;
-        if (mcBlockID === 0) {
-          // air is always air TODO: custom air blocks?
-          ourBlockID = 0;
-        } else {
-          ourBlockID = self.translateBlockIDs[(mcBlockID << 4) | mcMetaID];
-          if (!ourBlockID) ourBlockID = self.translateBlockIDs[mcBlockID << 4]; // try 0 metadata
-          if (!ourBlockID) ourBlockID = self.defaultBlockID; // default replacement block
-        }
+        var ourBlockID = self.translateBlockID(mcPackedID);
 
         //var chunkIndex = this.game.voxels.chunkAtCoordinates(a[0], a[1], a[2]);
         var chunkIndex = [x >> self.chunkBits, y >> self.chunkBits, z >> self.chunkBits];
