@@ -235,7 +235,7 @@ ClientMC.prototype.chat = function(event) {
 ClientMC.prototype.spawn = function(event) {
   this.console.log('Spawn position: '+JSON.stringify(event.spawnPoint));
   this.game.controls.target().avatar.position.x = event.spawnPoint.x;
-  this.game.controls.target().avatar.position.y = event.spawnPoint.y+50; // give some space to fall while chunks load TODO: move after all chunks load instead
+  this.game.controls.target().avatar.position.y = event.spawnPoint.y;
   this.game.controls.target().avatar.position.z = event.spawnPoint.z;
 
   this.commands.isConnectedToServer = true;
