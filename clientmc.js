@@ -386,7 +386,7 @@ ClientMC.prototype.connectServer = function() {
   // array MC block ID -> our block ID
   // packs 4-bit metadata in LSBs (MC block ID = 12-bits, meta = 4-bits, total 16-bits -> ours 16 bit)
   this.translateBlockIDs = new this.game.arrayType(maxId);
-  this.defaultBlockID = this.opts.mcBlocks.default;
+  this.defaultBlockID = this.registry.getBlockIndex(this.opts.mcBlocks.default);
 
   for (var mcID in this.opts.mcBlocks) {
     var mcBlockID;
