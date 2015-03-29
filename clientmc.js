@@ -299,9 +299,8 @@ ClientMC.prototype.chunks = function(event) {
 
 ClientMC.prototype.blockBreakAnimation = function(event) {
   var texture;
-
   if (event.destroyStage < 0 || event.destroyStage > 9) {
-    texture = null; // remove
+    texture = null;
   } else {
     texture = 'destroy_stage_' + event.destroyStage;
   }
@@ -317,11 +316,13 @@ ClientMC.prototype.blockBreakAnimation = function(event) {
 
   for (var i = 0; i < normals.length; ++i) {
     var normal = normals[i];
-    if (texture)
+    if (texture) {
       this.decalsPlugin.change({position: event.location, normal: normal, texture: texture});
-    else
-      this.decalsPlugin.remove(event.location);
+    } else {
+      this.decalsPlugin.remove({position: event.location, normal: normal});
+    }
   }
+
   this.decalsPlugin.update();
 };
 
