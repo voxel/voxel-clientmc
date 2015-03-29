@@ -268,5 +268,36 @@ module.exports = function(self) {
       self[key] = event[key];
     }
   };
+
+  // http://wiki.vg/Protocol#Player_Digging
+  var normal2mcface = function(normal) {
+    switch(normal.join(',')) {
+      case '0,-1,0': return 0;  // -y
+      case '0,1,0': return 1;   // +y
+      case '0,0,-1': return 2;  // -z
+      case '0,0,1': return 3;   // +z
+      case '-1,0,0': return 4;  // -x
+      case '1,0,0': return 5;   // +x
+      default: return 255;
+    }
+  }
+
+  self.digStart = function(event) {
+    // TODO: higher-level dig api in mineflayer (currently, blocks.js dig() does both start and stop, and hardcodes face top)
+    // this uses the low-level packet protocol interface
+    self.bot.client.write('block_dig', {
+      status: 0, // start digging
+      location: {x:event.position[0], y:event.position[1], z:event.position[2]},
+      face: normal2mcface(event.normal),
+    });
+  };
+
+  self.digStop = function(event) {
+    self.bot.client.write('block_dig', {
+      status: 1, // stop digging
+      location: {x:event.position[0], y:event.position[1], z:event.position[2]}, // TODO: mineflayer sends x,y,z for this packet?!
+      face: normal2mcface(event.normal),
+    });
+  };
 };
 

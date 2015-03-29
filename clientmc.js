@@ -15,7 +15,7 @@ module.exports = function(game, opts) {
 };
 
 module.exports.pluginInfo = {
-  loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry', 'voxel-console', 'voxel-commands']
+  loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry', 'voxel-console', 'voxel-commands', 'voxel-reach']
 };
 
 
@@ -32,6 +32,7 @@ function ClientMC(game, opts) {
 
   this.console = game.plugins.get('voxel-console'); // optional
   this.commands = game.plugins.get('voxel-commands'); // optional
+  this.reachPlugin = game.plugins.get('voxel-reach') || 'voxel-clientmc requires voxel-reach plugin';
 
   opts.url = opts.url || 'ws://'+document.location.hostname+':24444/server';
 
@@ -367,23 +368,17 @@ ClientMC.prototype.connectServer = function() {
 
   //this.voxelChunks = {}; // TODO: use this?
 
-  /* TODO
-
   // block events
-
-  var pos = [0,0,0];
-  this.bot.on('blockUpdate', function(oldBlock, newBlock) {
-    console.log('blockUpdate', oldBlock, newBlock);
-    var position = newBlock.position;
-    pos[0] = position.x;
-    pos[1] = position.y;
-    pos[2] = position.z;
-    var val = self.translateBlockIDs[newBlock.type];
-    self.game.setBlock(pos, val);
+  this.reachPlugin.on('start mining', function(target) { // TODO: remove events on disable
+    console.log('start mining',target);
+    self.mfworkerStream.write({cmd: 'digStart', position:target.voxel, normal:target.normal});
   });
-  // TODO: also handle mass block update (event? would like to optimize multi_block_change, but..)
+  this.reachPlugin.on('stop mining', function(target) {
+    if (!target) target = self.reachPlugin.specifyTarget(); // TODO: why is this sometimes null? voxel-reach bug?
+    console.log('stop mining',target);
+    self.mfworkerStream.write({cmd: 'digStop', position:target.voxel, normal:target.normal});
+  });
 
-  */
 
   var maxId = 4096; // 2^12 TODO: 2^16? for extended block IDs (plus metadata)
 
