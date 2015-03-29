@@ -122,7 +122,7 @@ module.exports = function(self) {
         var dy = blockIndex >> 8;
 
         var x = chunkX + dx;
-        var y = dy;
+        var y = chunkY + dy;
         var z = chunkZ + dz;
 
 
