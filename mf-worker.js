@@ -18,7 +18,7 @@ module.exports = function(self) {
       this.queue(event);
     } else {
       // divert non-packet data, tells us what to do from the main thread
-      console.log('mfworker NON-BUFFER DATA:',event);
+      //console.log('mfworker NON-BUFFER DATA:',event);
       var cmd = event.cmd;
       var f = self[event.cmd];
       if (!f) {
@@ -329,6 +329,10 @@ module.exports = function(self) {
     if (swingInterval) self.clearInterval(swingInterval);
     swingInterval = null;
   */
+  };
+
+  self.move = function(event) {
+    self.bot.entity.position.set(event.position[0], event.position[1], event.position[2]);
   };
 };
 

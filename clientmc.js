@@ -404,6 +404,14 @@ ClientMC.prototype.connectServer = function() {
 
   //this.voxelChunks = {}; // TODO: use this?
 
+  var position = [0,0,0];
+  this.game.on('tick', function(dt) { // TODO: remove event on disable
+    position[0] = self.game.controls.target().avatar.position.x;
+    position[1] = self.game.controls.target().avatar.position.y;
+    position[2] = self.game.controls.target().avatar.position.z;
+    self.mfworkerStream.write({cmd: 'move', position: position});
+  });
+
   // block events
   this.reachPlugin.on('start mining', function(target) { // TODO: remove events on disable
     console.log('start mining',target);
