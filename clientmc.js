@@ -9,13 +9,24 @@ var webworkify = require('webworkify');
 var workerstream = require('workerstream');
 var vec3Object = require('vec3'); // note: object type used by mineflayer, NOT gl-vec3 which is just a typed array :(
 var typedArrayToBuffer = require('typedarray-to-buffer');
+var ItemPile = require('itempile');
 
 module.exports = function(game, opts) {
   return new ClientMC(game, opts);
 };
 
 module.exports.pluginInfo = {
-  loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry', 'voxel-console', 'voxel-commands', 'voxel-reach', 'voxel-decals', 'voxel-sfx']
+  loadAfter: [
+    'voxel-land',
+    'voxel-player',
+    'voxel-registry',
+    'voxel-console',
+    'voxel-commands',
+    'voxel-reach',
+    'voxel-decals',
+    'voxel-sfx',
+    'voxel-carry',
+  ]
 };
 
 
@@ -35,6 +46,7 @@ function ClientMC(game, opts) {
   this.reachPlugin = game.plugins.get('voxel-reach') || 'voxel-clientmc requires voxel-reach plugin';
   this.decalsPlugin = game.plugins.get('voxel-decals') || 'voxel-clientmc requires voxel-decals plugin';
   this.sfxPlugin = game.plugins.get('voxel-sfx'); // optional
+  this.carryPlugin = game.plugins.get('voxel-carry');
 
   opts.url = opts.url || 'ws://'+document.location.hostname+':24444/server';
 
@@ -342,6 +354,30 @@ ClientMC.prototype.sound = function(event) {
     this.sfxPlugin.play(path);
     this.sfxPlugin.play(path + '1');
   }
+};
+
+ClientMC.prototype.setSlot = function(event) {
+  console.log('setSlot',event);
+  if (!this.carryPlugin) return;
+
+  var mcSlot = 0;
+  if (event.newItem) mcSlot = event.newItem.slot; // either may be null
+  else if (event.oldItem) mcSlot = event.oldItem.slot;
+
+  // http://wiki.vg/Protocol#Set_Slot
+  var ourSlot = mcSlot; // TODO
+
+  var pile = null;
+  if (event.newItem) {
+    var mcName = event.newItem.name;
+    var count = event.newItem.count;
+
+    var ourName = mcName; // TODO
+
+    pile = new ItemPile(ourName, count);
+  }
+
+  this.carryPlugin.inventory.set(ourSlot, pile);
 };
 
 ClientMC.prototype.enable = function() {

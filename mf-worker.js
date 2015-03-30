@@ -263,10 +263,17 @@ module.exports = function(self) {
     self.postMessage({cmd: 'move', position:[self.bot.entity.position.x, self.bot.entity.position.y, self.bot.entity.position.z]});
   });
 
-  self.bot.client.on('named_sound_effect', function(event) {
-    // TODO: event.x,y,z(location?), volume, pitch - 3D sound
+  self.bot.client.on('named_sound_effect', function(event) { // TODO: mineflayer api?
+    // TODO: event.x,y,z(location?), volume, pitch - 3D sound https://github.com/deathcap/voxel-sfx/issues/3 Positional audio? (voxel-audio)
     self.postMessage({cmd: 'sound', soundName:event.soundName});
   });
+
+  self.bot.on('setSlot:0', function(oldItem, newItem) { // slot 0 is player inventory
+    console.log('setSlot',oldItem,newItem);
+    if (!oldItem && !newItem) return; // TODO: why does mineflayer send this?
+    self.postMessage({cmd: 'setSlot', oldItem:oldItem, newItem:newItem});
+  });
+  // TODO: window items packet? for setting multiple slots
 
   // if we exist (the webworker), socket is connected
   self.bot.client.emit('connect');
