@@ -26,6 +26,7 @@ module.exports.pluginInfo = {
     'voxel-decals',
     'voxel-sfx',
     'voxel-carry',
+    'voxel-use',
   ]
 };
 
@@ -43,10 +44,14 @@ function ClientMC(game, opts) {
 
   this.console = game.plugins.get('voxel-console'); // optional
   this.commands = game.plugins.get('voxel-commands'); // optional
-  this.reachPlugin = game.plugins.get('voxel-reach') || 'voxel-clientmc requires voxel-reach plugin';
-  this.decalsPlugin = game.plugins.get('voxel-decals') || 'voxel-clientmc requires voxel-decals plugin';
+  this.reachPlugin = game.plugins.get('voxel-reach');
+  if (!this.reachPlugin) throw new Error('voxel-clientmc requires voxel-reach plugin');
+  this.decalsPlugin = game.plugins.get('voxel-decals');
+  if (!this.decalsPlugin) throw new Error('voxel-clientmc requires voxel-decals plugin');
   this.sfxPlugin = game.plugins.get('voxel-sfx'); // optional
-  this.carryPlugin = game.plugins.get('voxel-carry');
+  this.carryPlugin = game.plugins.get('voxel-carry'); // optional
+  this.usePlugin = game.plugins.get('voxel-use');
+  if (!this.usePlugin) throw new Error('voxel-clientmc requires voxel-use plugin');
 
   opts.url = opts.url || 'ws://'+document.location.hostname+':24444/server';
 
@@ -447,6 +452,7 @@ ClientMC.prototype.connectServer = function() {
     // pass some useful data to the worker
     self.mfworkerStream.write({cmd: 'setVariables',
       translateBlockIDs: self.translateBlockIDs,
+      reverseBlockIDs: self.reverseBlockIDs,
       defaultBlockID: self.defaultBlockID,
       chunkSize: self.game.chunkSize,
       chunkPad: self.game.chunkPad,
@@ -504,12 +510,22 @@ ClientMC.prototype.connectServer = function() {
     self.mfworkerStream.write({cmd: 'digStop', position:target.voxel, normal:target.normal});
   });
 
+  this.usePlugin.on('usedBlock', function(target, held, newHeld) {
+    console.log('usedBlock',target,held,newHeld);
+
+    if (!target) return;
+
+    //var value = self.registry.getBlockIndex(held.item);
+
+    self.mfworkerStream.write({cmd: 'placeBlock', position:target.voxel, value:target.value});
+  });
 
   var maxId = 4096; // 2^12 TODO: 2^16? for extended block IDs (plus metadata)
 
   // array MC block ID -> our block ID
   // packs 4-bit metadata in LSBs (MC block ID = 12-bits, meta = 4-bits, total 16-bits -> ours 16 bit)
   this.translateBlockIDs = new this.game.arrayType(maxId);
+  this.reverseBlockIDs = {};
   this.defaultBlockID = this.registry.getBlockIndex(this.opts.mcBlocks.default);
 
   for (var mcID in this.opts.mcBlocks) {
@@ -529,6 +545,7 @@ ClientMC.prototype.connectServer = function() {
       throw new Error('voxel-clientmc unrecognized block name: '+ourBlockName+' for MC '+mcID);
     var mcPackedID = (mcBlockID << 4) | mcMetaID;
     this.translateBlockIDs[mcPackedID] = ourBlockID;
+    this.reverseBlockIDs[ourBlockID] = mcPackedID;
   }
 
   // for chunk conversion - see voxel/chunker.js

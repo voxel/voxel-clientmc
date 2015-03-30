@@ -346,5 +346,23 @@ module.exports = function(self) {
   self.move = function(event) {
     self.bot.entity.position.set(event.position[0], event.position[1], event.position[2]);
   };
+
+  self.placeBlock = function(event) {
+    var block = self.bot.blockAt(vec3Object(event.position[0], event.position[1], event.position[2]));
+    if (!block) {
+      console.log('placeBlock no block location found',event);
+      return;
+    }
+
+    var ourType = event.value;
+    var mcType = self.reverseBlockIDs[ourType];
+
+    block.type = mcType >> 4;
+    block.metadata = mcType & 0xf;
+
+    console.log('activateBlock',block);
+
+    self.bot.activateBlock(block);
+  };
 };
 
