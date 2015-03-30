@@ -317,13 +317,19 @@ ClientMC.prototype.blockBreakAnimation = function(event) {
   for (var i = 0; i < normals.length; ++i) {
     var normal = normals[i];
     if (texture) {
-      this.decalsPlugin.change({position: event.location, normal: normal, texture: texture});
+      this.decalsPlugin.change({position: event.position, normal: normal, texture: texture});
     } else {
-      this.decalsPlugin.remove({position: event.location, normal: normal});
+      this.decalsPlugin.remove({position: event.position, normal: normal});
     }
   }
 
   this.decalsPlugin.update();
+};
+
+ClientMC.prototype.move = function(event) {
+  this.game.controls.target().avatar.position.x = event.position[0];
+  this.game.controls.target().avatar.position.y = event.position[1];
+  this.game.controls.target().avatar.position.z = event.position[2];
 };
 
 ClientMC.prototype.enable = function() {
