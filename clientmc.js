@@ -365,7 +365,39 @@ ClientMC.prototype.setSlot = function(event) {
   else if (event.oldItem) mcSlot = event.oldItem.slot;
 
   // http://wiki.vg/Protocol#Set_Slot
-  var ourSlot = mcSlot; // TODO
+  var ourSlot;
+  if (mcSlot >= 9) {
+    // stored player inventory slots or hotbar
+    var slotIndex = mcSlot - 9;
+    var mcWidth = 9;
+    var mcHeight = 4;
+    var slotCol = slotIndex % mcWidth;
+    var slotRow = Math.floor(slotIndex / mcWidth);
+
+    if (slotRow === 3) {
+      // our hotbar slots are at top, theirs at bottom TODO: change?
+      slotRow = 0;
+    } else {
+      slotRow += (this.carryPlugin.inventory.height - mcHeight);
+    }
+
+    ourSlot = this.carryPlugin.inventory.width * slotRow + slotCol;
+  } else if (mcSlot < 9) {
+    switch(mcSlot) {
+      case 0: return; // crafting output, can't set TODO: well, maybe?
+      case 1: return; // crafting ingredients
+      case 2: return;
+      case 3: return;
+      case 4: return;
+      // armor slots TODO
+      case 5: ourSlot = 10; break;
+      case 6: ourSlot = 20; break;
+      case 7: ourSlot = 30; break;
+      case 8: ourSlot = 30; break;
+    }
+  } else {
+    throw new Error('unrecognized mc inventory slot:'+event);
+  }
 
   var pile = null;
   if (event.newItem) {
