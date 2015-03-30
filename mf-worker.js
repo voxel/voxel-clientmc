@@ -263,6 +263,11 @@ module.exports = function(self) {
     self.postMessage({cmd: 'move', position:[self.bot.entity.position.x, self.bot.entity.position.y, self.bot.entity.position.z]});
   });
 
+  self.bot.client.on('named_sound_effect', function(event) {
+    // TODO: event.x,y,z(location?), volume, pitch - 3D sound
+    self.postMessage({cmd: 'sound', soundName:event.soundName});
+  });
+
   // if we exist (the webworker), socket is connected
   self.bot.client.emit('connect');
 

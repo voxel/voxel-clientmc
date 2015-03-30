@@ -15,7 +15,7 @@ module.exports = function(game, opts) {
 };
 
 module.exports.pluginInfo = {
-  loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry', 'voxel-console', 'voxel-commands', 'voxel-reach', 'voxel-decals']
+  loadAfter: ['voxel-land', 'voxel-player', 'voxel-registry', 'voxel-console', 'voxel-commands', 'voxel-reach', 'voxel-decals', 'voxel-sfx']
 };
 
 
@@ -34,6 +34,7 @@ function ClientMC(game, opts) {
   this.commands = game.plugins.get('voxel-commands'); // optional
   this.reachPlugin = game.plugins.get('voxel-reach') || 'voxel-clientmc requires voxel-reach plugin';
   this.decalsPlugin = game.plugins.get('voxel-decals') || 'voxel-clientmc requires voxel-decals plugin';
+  this.sfxPlugin = game.plugins.get('voxel-sfx'); // optional
 
   opts.url = opts.url || 'ws://'+document.location.hostname+':24444/server';
 
@@ -330,6 +331,17 @@ ClientMC.prototype.move = function(event) {
   this.game.controls.target().avatar.position.x = event.position[0];
   this.game.controls.target().avatar.position.y = event.position[1];
   this.game.controls.target().avatar.position.z = event.position[2];
+};
+
+ClientMC.prototype.sound = function(event) {
+  console.log('sound',event);
+  if (this.sfxPlugin) {
+    var path = event.soundName.replace('.', '/');
+    // TODO: https://github.com/deathcap/artpacks/issues/14 Randomized sound effect lookup
+    // for now, try either unnumbered or first effect variant
+    this.sfxPlugin.play(path);
+    this.sfxPlugin.play(path + '1');
+  }
 };
 
 ClientMC.prototype.enable = function() {
