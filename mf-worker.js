@@ -254,9 +254,13 @@ module.exports = function(self) {
     self.postMessage({cmd: 'chunks', chunks: chunkCache}); // TODO: transferrable
   };
 
-  self.bot.client.on('block_break_animation', function(event) { // TODO: mineflayer api (vs protocol)
-    self.postMessage({cmd: 'blockBreakAnimation', position:[event.location.x, event.location.y, event.location.z], destroyStage: event.destroyStage});
+  self.bot.on('blockBreakProgressObserved', function(block, destroyStage) {
+    self.postMessage({cmd: 'blockBreakProgressObserved', position:[block.position.x, block.position.y, block.position.z], destroyStage: destroyStage});
   });
+  self.bot.on('blockBreakProgressEnd', function(block) {
+    self.postMessage({cmd: 'blockBreakProgressEnd', position:[block.position.x, block.position.y, block.position.z]});
+  });
+
 
   self.bot.on('move', function() { // TODO: also support entityMoved, other entities, players, mobs
     // player move

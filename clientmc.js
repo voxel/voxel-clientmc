@@ -315,14 +315,18 @@ ClientMC.prototype.chunks = function(event) {
   };
 };
 
-ClientMC.prototype.blockBreakAnimation = function(event) {
-  var texture;
-  if (event.destroyStage < 0 || event.destroyStage > 9) {
-    texture = null;
-  } else {
-    texture = 'destroy_stage_' + event.destroyStage;
-  }
+ClientMC.prototype.blockBreakProgressObserved = function(event) {
+  var texture = 'destroy_stage_' + event.destroyStage;
 
+  this.blockBreakProgress(event.position, texture);
+};
+
+ClientMC.prototype.blockBreakProgressEnd = function(event) {
+  this.blockBreakProgress(event.position, null);
+};
+
+
+ClientMC.prototype.blockBreakProgress = function(position, texture) {
   // MC's break animations don't include the block face, so include them all
   var normals = [
     [1,0,0],
@@ -335,9 +339,9 @@ ClientMC.prototype.blockBreakAnimation = function(event) {
   for (var i = 0; i < normals.length; ++i) {
     var normal = normals[i];
     if (texture) {
-      this.decalsPlugin.change({position: event.position, normal: normal, texture: texture});
+      this.decalsPlugin.change({position: position, normal: normal, texture: texture});
     } else {
-      this.decalsPlugin.remove({position: event.position, normal: normal});
+      this.decalsPlugin.remove({position: position, normal: normal});
     }
   }
 
