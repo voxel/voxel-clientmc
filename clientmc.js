@@ -355,7 +355,7 @@ ClientMC.prototype.move = function(event) {
 };
 
 ClientMC.prototype.sound = function(event) {
-  console.log('sound',event);
+  //console.log('sound',event);
   if (this.sfxPlugin) {
     var path = event.soundName.replace('.', '/');
     // TODO: https://github.com/deathcap/artpacks/issues/14 Randomized sound effect lookup

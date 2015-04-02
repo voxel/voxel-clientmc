@@ -267,9 +267,10 @@ module.exports = function(self) {
     self.postMessage({cmd: 'move', position:[self.bot.entity.position.x, self.bot.entity.position.y, self.bot.entity.position.z]});
   });
 
-  self.bot.client.on('named_sound_effect', function(event) { // TODO: mineflayer api?
+  self.bot.on('soundEffectHeard', function(soundName, position, volume, pitch) {
+    //console.log('soundEffectHeard',arguments);
     // TODO: event.x,y,z(location?), volume, pitch - 3D sound https://github.com/deathcap/voxel-sfx/issues/3 Positional audio? (voxel-audio)
-    self.postMessage({cmd: 'sound', soundName:event.soundName});
+    self.postMessage({cmd: 'sound', soundName:soundName});
   });
 
   self.bot.on('setSlot:0', function(oldItem, newItem) { // slot 0 is player inventory
