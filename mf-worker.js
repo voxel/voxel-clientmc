@@ -273,6 +273,13 @@ module.exports = function(self) {
     self.postMessage({cmd: 'sound', soundName:soundName});
   });
 
+  self.bot.client.on('held_item_slot', function(packet) { // TODO: this really should be emitted in mineflayer
+    //packet.slot
+    var slot = self.bot.quickBarSlot;
+    console.log('held_item_slot',slot);
+    self.postMessage({cmd: 'heldItemSlot', slot:slot});
+  });
+
   self.bot.on('setSlot:0', function(oldItem, newItem) { // slot 0 is player inventory
     console.log('setSlot',oldItem,newItem);
     if (!oldItem && !newItem) return; // TODO: why does mineflayer send this?
@@ -368,6 +375,10 @@ module.exports = function(self) {
     console.log('activateBlock',block);
 
     self.bot.activateBlock(block);
+  };
+
+  self.setHeldItem = function(event) {
+    self.bot.setQuickBarSlot(event.slot);
   };
 };
 

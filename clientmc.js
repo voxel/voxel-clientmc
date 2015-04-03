@@ -27,6 +27,7 @@ module.exports.pluginInfo = {
     'voxel-sfx',
     'voxel-carry',
     'voxel-use',
+    'voxel-inventory-hotbar',
   ]
 };
 
@@ -52,6 +53,7 @@ function ClientMC(game, opts) {
   this.carryPlugin = game.plugins.get('voxel-carry'); // optional
   this.usePlugin = game.plugins.get('voxel-use');
   if (!this.usePlugin) throw new Error('voxel-clientmc requires voxel-use plugin');
+  this.hotbar = game.plugins.get('voxel-inventory-hotbar'); // optional
 
   opts.url = opts.url || 'ws://'+document.location.hostname+':24444/server';
 
@@ -421,6 +423,12 @@ ClientMC.prototype.setSlot = function(event) {
   this.carryPlugin.inventory.set(ourSlot, pile);
 };
 
+ClientMC.prototype.heldItemSlot = function(event) {
+  if (!this.hotbar) return;
+
+  this.hotbar.setSelectedIndex(event.slot);
+};
+
 ClientMC.prototype.enable = function() {
   // only begin connecting to server after voxel-engine is initialized,
   // since it shows chunks (game.showChunk) which requires engine initialization,
@@ -523,6 +531,12 @@ ClientMC.prototype.connectServer = function() {
 
     self.mfworkerStream.write({cmd: 'placeBlock', position:target.voxel, value:target.value});
   });
+
+  if (this.hotbar) {
+    this.hotbar.on('selectionChanging', function(event) {
+      self.mfworkerStream.write({cmd: 'setHeldItem', slot:event.newIndex});
+    });
+  }
 
   var maxId = 4096; // 2^12 TODO: 2^16? for extended block IDs (plus metadata)
 
