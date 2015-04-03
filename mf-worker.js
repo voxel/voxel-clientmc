@@ -287,6 +287,10 @@ module.exports = function(self) {
   });
   // TODO: window items packet? for setting multiple slots
 
+  self.bot.client.on('resource_pack_send', function(packet) { // TODO: mineflayer api
+      self.postMessage({cmd: 'resourcePack', url:packet.url, hash:packet.hash});
+  });
+
   // if we exist (the webworker), socket is connected
   self.bot.client.emit('connect');
 

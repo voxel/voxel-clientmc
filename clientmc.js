@@ -429,6 +429,15 @@ ClientMC.prototype.heldItemSlot = function(event) {
   this.hotbar.setSelectedIndex(event.slot);
 };
 
+ClientMC.prototype.resourcePack = function(event) {
+  this.console.log('Server offered resource pack. Download then drag and drop in browser to install:');
+  var link = document.createElement('a');
+  link.href = event.url;
+  link.title = event.hash;
+  link.textContent = event.url;
+  this.console.logNode(link);
+};
+
 ClientMC.prototype.enable = function() {
   // only begin connecting to server after voxel-engine is initialized,
   // since it shows chunks (game.showChunk) which requires engine initialization,
