@@ -273,7 +273,7 @@ module.exports = function(self) {
     self.postMessage({cmd: 'sound', soundName:soundName});
   });
 
-  self.bot.client.on('held_item_slot', function(packet) { // TODO: this really should be emitted in mineflayer
+  self.bot._client.on('held_item_slot', function(packet) { // TODO: this really should be emitted in mineflayer
     //packet.slot
     var slot = self.bot.quickBarSlot;
     console.log('held_item_slot',slot);
@@ -287,12 +287,12 @@ module.exports = function(self) {
   });
   // TODO: window items packet? for setting multiple slots
 
-  self.bot.client.on('resource_pack_send', function(packet) { // TODO: mineflayer api
+  self.bot._client.on('resource_pack_send', function(packet) { // TODO: mineflayer api
       self.postMessage({cmd: 'resourcePack', url:packet.url, hash:packet.hash});
   });
 
   // if we exist (the webworker), socket is connected
-  self.bot.client.emit('connect');
+  self.bot._client.emit('connect');
 
 
   // handlers called for main thread
@@ -330,14 +330,14 @@ module.exports = function(self) {
     /*
     // TODO: higher-level dig api in mineflayer (currently, blocks.js dig() does both start and stop, and hardcodes face top)
     // this uses the low-level packet protocol interface
-    self.bot.client.write('block_dig', {
+    self.bot._client.write('block_dig', {
       status: 0, // start digging
       location: {x:event.position[0], y:event.position[1], z:event.position[2]},
       face: normal2mcface(event.normal),
     });
 
     swingInterval = self.setInterval(function() {
-      self.bot.client.write('arm_animation', {
+      self.bot._client.write('arm_animation', {
         entityId: self.bot.entity.id,
         animation: 1, // 0? swing arm http://wiki.vg/Protocol#Animation
       }, 350); // TODO: stop hardcoding 350 ms
@@ -348,7 +348,7 @@ module.exports = function(self) {
   self.digStop = function(event) {
     //self.bot.stopDigging(); // TODO: after get digTime right
     /*
-    self.bot.client.write('block_dig', {
+    self.bot._client.write('block_dig', {
       status: 1, // stop digging
       location: {x:event.position[0], y:event.position[1], z:event.position[2]}, // TODO: mineflayer sends x,y,z for this packet?!
       face: normal2mcface(event.normal),
