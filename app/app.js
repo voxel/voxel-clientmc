@@ -34,7 +34,6 @@ require('./blocks.js');
 require('voxel-decorative');
 require('voxel-land');
 require('voxel-inventory-creative');
-require('voxel-clientmc');
 require('voxel-console');
 require('voxel-commands');
 require('voxel-drop');
