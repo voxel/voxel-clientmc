@@ -42,6 +42,7 @@ module.exports = function(self) {
   self.bot = mineflayer.createBot({
     username: 'user1', // TODO
     stream: self.duplexStream,
+    noPacketFramer: true
   });
 
   console.log('mf-worker bot',self.bot);
