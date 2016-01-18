@@ -360,6 +360,7 @@ module.exports = function(self) {
   };
 
   self.move = function(event) {
+    if (!self.bot.entity) return; // entity not loaded yet
     self.bot.entity.position.set(event.position[0], event.position[1], event.position[2]);
   };
 
