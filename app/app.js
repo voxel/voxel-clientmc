@@ -5,7 +5,7 @@ var createEngine = require('voxel-engine-stackgl');
 var main = function() {
   console.log('starting up');
   createEngine({pluginLoaders: {
-    'voxel-clientmc': require('voxel-clientmc'),
+    'voxel-clientmc': require('../'),
     'voxel-registry': require('voxel-registry'),
     'voxel-artpacks': require('voxel-artpacks'),
     'voxel-wireframe': require('voxel-wireframe'),
