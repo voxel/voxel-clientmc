@@ -44,12 +44,12 @@ require('voxel-keys');
 require('kb-bindings-ui');
 require('camera-debug');
 
-var createEngine = require('voxel-engine');
+var createEngine = require('voxel-engine-stackgl');
 
 var main = function() {
   console.log('starting up');
   createEngine({require:require, exposeGlobal:true, pluginOpts:{
-    'voxel-engine': {
+    'voxel-engine-stackgl': {
       appendDocument: true,
       exposeGlobal: true,  // for debugging
 
