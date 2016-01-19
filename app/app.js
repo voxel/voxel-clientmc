@@ -38,6 +38,8 @@ var main = function() {
     './blocks.js': require('./blocks.js'),
     'voxel-decorative': require('voxel-decorative'),
     'voxel-land': require('voxel-land'),
+    'voxel-flatland': require('voxel-flatland'),
+    'voxel-bedrock': require('voxel-bedrock'),
     'voxel-inventory-creative': require('voxel-inventory-creative'),
     'voxel-console': require('voxel-console'),
     'voxel-commands': require('voxel-commands'),
@@ -118,6 +120,8 @@ var main = function() {
     './blocks.js': {}, // misc inanimate opaque solid blocks
     'voxel-decorative': {},
     //'voxel-land': {registerBlocks: false},
+    'voxel-flatland': {block: 'bedrock'},
+    'voxel-bedrock': {},
     'voxel-inventory-creative': {},
     'voxel-clientmc': {},
 
