@@ -298,6 +298,8 @@ ClientMC.prototype.setBlock = function(event) {
 };
 
 ClientMC.prototype.chunks = function(event) {
+  this.game.plugins.disable('voxel-flatland');
+
   for (var key in event.chunks) {
     var chunk = event.chunks[key];
 
