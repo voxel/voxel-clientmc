@@ -163,11 +163,6 @@ module.exports = function(self) {
           chunk.position = [chunkIndex[0], chunkIndex[1], chunkIndex[2]];
 
           //this.game.voxels.chunks[chunkKey] = chunk;
-          if (
-              chunkKey!=='0|0|0'
-              && chunkKey!=='0|1|0'
-              && chunkKey!=='0|2|0'
-              ) return; // XXX TODO: enable all, for now only these voxel chunks for testing
           chunkCache[chunkKey] = chunk;
 
           console.log('Created new chunk '+chunkKey);
