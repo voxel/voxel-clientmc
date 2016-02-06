@@ -305,8 +305,8 @@ ClientMC.prototype.chunks = function(event) {
 
     // sending ndarray over postMessage loses prototype (cloning algorithm); reconstitute it TODO: optimize
     var realChunk = ndarray(chunk.data,
-        [chunk._shape0, chunk._shape1, chunk._shape2],
-        [chunk._stride0, chunk._stride1, chunk._stride2],
+        [chunk.shape[0], chunk.shape[1], chunk.shape[2]],
+        [chunk.stride[0], chunk.stride[1], chunk.stride[2]],
         chunk.offset);
     realChunk.position = chunk.position;
 
