@@ -1,55 +1,57 @@
 'use strict';
 
-require('voxel-clientmc');
-require('voxel-registry');
-require('voxel-artpacks');
-require('voxel-wireframe');
-require('voxel-chunkborder');
-require('voxel-carry');
-require('voxel-recipes');
-require('voxel-workbench');
-require('voxel-furnace');
-require('voxel-chest');
-require('voxel-inventory-hotbar');
-require('voxel-inventory-crafting');
-require('voxel-outline');
-require('voxel-voila');
-require('voxel-health');
-require('voxel-health-bar');
-require('voxel-food');
-require('voxel-sfx');
-require('voxel-flight');
-require('voxel-gamemode');
-require('voxel-sprint');
-require('voxel-mine');
-require('voxel-decals');
-require('voxel-harvest');
-require('voxel-use');
-require('voxel-reach');
-require('voxel-pickaxe');
-require('voxel-wool');
-require('voxel-pumpkin');
-require('voxel-blockdata');
-require('./blocks.js');
-require('voxel-decorative');
-require('voxel-land');
-require('voxel-inventory-creative');
-require('voxel-clientmc');
-require('voxel-console');
-require('voxel-commands');
-require('voxel-drop');
-require('voxel-zen');
-require('voxel-plugins-ui');
-require('voxel-keys');
-require('kb-bindings-ui');
-require('camera-debug');
-
-var createEngine = require('voxel-engine');
+var createEngine = require('voxel-engine-stackgl');
 
 var main = function() {
   console.log('starting up');
-  createEngine({require:require, exposeGlobal:true, pluginOpts:{
-    'voxel-engine': {
+  createEngine({pluginLoaders: {
+    'voxel-clientmc': require('../'),
+    'voxel-registry': require('voxel-registry'),
+    'voxel-artpacks': require('voxel-artpacks'),
+    'voxel-wireframe': require('voxel-wireframe'),
+    'voxel-chunkborder': require('voxel-chunkborder'),
+    'voxel-carry': require('voxel-carry'),
+    'voxel-recipes': require('voxel-recipes'),
+    'voxel-workbench': require('voxel-workbench'),
+    'voxel-furnace': require('voxel-furnace'),
+    'voxel-fullscreen': require('voxel-fullscreen'),
+    'voxel-chest': require('voxel-chest'),
+    'voxel-inventory-hotbar': require('voxel-inventory-hotbar'),
+    'voxel-inventory-crafting': require('voxel-inventory-crafting'),
+    'voxel-outline': require('voxel-outline'),
+    'voxel-voila': require('voxel-voila'),
+    'voxel-health': require('voxel-health'),
+    'voxel-health-bar': require('voxel-health-bar'),
+    'voxel-food': require('voxel-food'),
+    'voxel-sfx': require('voxel-sfx'),
+    'voxel-flight': require('voxel-flight'),
+    'voxel-gamemode': require('voxel-gamemode'),
+    'voxel-sprint': require('voxel-sprint'),
+    'voxel-mine': require('voxel-mine'),
+    'voxel-decals': require('voxel-decals'),
+    'voxel-harvest': require('voxel-harvest'),
+    'voxel-use': require('voxel-use'),
+    'voxel-reach': require('voxel-reach'),
+    'voxel-pickaxe': require('voxel-pickaxe'),
+    'voxel-wool': require('voxel-wool'),
+    'voxel-pumpkin': require('voxel-pumpkin'),
+    'voxel-blockdata': require('voxel-blockdata'),
+    './blocks.js': require('./blocks.js'),
+    'voxel-decorative': require('voxel-decorative'),
+    'voxel-land': require('voxel-land'),
+    'voxel-flatland': require('voxel-flatland'),
+    'voxel-bedrock': require('voxel-bedrock'),
+    'voxel-inventory-creative': require('voxel-inventory-creative'),
+    'voxel-console': require('voxel-console'),
+    'voxel-commands': require('voxel-commands'),
+    'voxel-drop': require('voxel-drop'),
+    'voxel-zen': require('voxel-zen'),
+    'voxel-plugins-ui': require('voxel-plugins-ui'),
+    'voxel-keys': require('voxel-keys'),
+    'kb-bindings-ui': require('kb-bindings-ui'),
+    'camera-debug': require('camera-debug')
+  }, exposeGlobal:true, pluginOpts:{
+    'voxel-engine-stackgl': {
       appendDocument: true,
       exposeGlobal: true,  // for debugging
 
@@ -112,6 +114,7 @@ var main = function() {
     'voxel-chest': {},
     'voxel-workbench': {},
     'voxel-furnace': {},
+    'voxel-fullscreen': {},
     'voxel-pickaxe': {},
     'voxel-wool': {},
     'voxel-pumpkin': {},
@@ -119,6 +122,8 @@ var main = function() {
     './blocks.js': {}, // misc inanimate opaque solid blocks
     'voxel-decorative': {},
     //'voxel-land': {registerBlocks: false},
+    'voxel-flatland': {block: 'dirt'},
+    'voxel-bedrock': {},
     'voxel-inventory-creative': {},
     'voxel-clientmc': {},
 

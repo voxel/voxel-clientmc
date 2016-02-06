@@ -42,6 +42,7 @@ module.exports = function(self) {
   self.bot = mineflayer.createBot({
     username: 'user1', // TODO
     stream: self.duplexStream,
+    noPacketFramer: true
   });
 
   console.log('mf-worker bot',self.bot);
@@ -108,7 +109,6 @@ module.exports = function(self) {
   // convert MC chunk format to ours, sends back to main to show
   var CHUNKS_ADDED = 0;
   self.addColumn = function(point) {
-    if (CHUNKS_ADDED >= 10) return; // only a few for testing
     console.log('Chunk load ('+point.x+','+point.y+','+point.z+')');
     var chunkX = point.x;
     var chunkZ = point.z;
@@ -360,6 +360,7 @@ module.exports = function(self) {
   };
 
   self.move = function(event) {
+    if (!self.bot.entity) return; // entity not loaded yet
     self.bot.entity.position.set(event.position[0], event.position[1], event.position[2]);
   };
 

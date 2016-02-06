@@ -21,7 +21,6 @@ BlocksPlugin.prototype.enable = function() {
   this.registry.registerBlock('farmland', {texture: 'farmland_dry'});
   this.registry.registerBlock('mycelium', {texture: ['mycelium_top', 'dirt', 'mycelium_side']});
   this.registry.registerBlock('stone', {displayName: 'Smooth Stone', texture: 'stone', hardness:10.0, itemDrop: 'cobblestone', effectiveTool: 'pickaxe', requiredTool: 'pickaxe'});
-  this.registry.registerBlock('bedrock', {texture: 'bedrock'});
   this.registry.registerBlock('waterFlow', {texture: 'water_flow'}); // TODO: animation
   this.registry.registerBlock('water', {texture: 'water_still'}); // TODO: animation
   this.registry.registerBlock('lavaFlow', {texture: 'lava_flow'}); // TODO: animation

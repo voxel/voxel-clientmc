@@ -12,7 +12,7 @@ Load with [voxel-plugins](https://github.com/deathcap/voxel-plugins), or:
 
 where game is a voxel-engine instance, and opts is optionally:
 
-* `url`: server to connect to, default `ws://localhost:1234`
+* `url`: server to connect to, default `ws://localhost:24444`
 * `mcBlocks`: MC block ID to [voxel-registry](https://github.com/deathcap/voxel-registry) block name
 
 Proxy the MC server using [wsmc](https://github.com/deathcap/wsmc) to make it available via WebSocket
