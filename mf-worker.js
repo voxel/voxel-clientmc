@@ -109,6 +109,7 @@ module.exports = function(self) {
   // convert MC chunk format to ours, sends back to main to show
   var CHUNKS_ADDED = 0;
   self.addColumn = function(point) {
+    if (point.y!==0||point.x!==16||point.z!==16)return; // TODO: display all chunks, only this one for now
     console.log('Chunk load ('+point.x+','+point.y+','+point.z+')');
     var chunkX = point.x;
     var chunkZ = point.z;
