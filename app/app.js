@@ -122,7 +122,7 @@ var main = function() {
     './blocks.js': {}, // misc inanimate opaque solid blocks
     'voxel-decorative': {},
     //'voxel-land': {registerBlocks: false},
-    'voxel-flatland': {block: 'bedrock'},
+    'voxel-flatland': {block: 'dirt'},
     'voxel-bedrock': {},
     'voxel-inventory-creative': {},
     'voxel-clientmc': {},
