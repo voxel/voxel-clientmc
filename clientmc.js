@@ -178,7 +178,13 @@ ClientMC.prototype._newItemPile = function(mcName, count, tags) {
   if (count === undefined) count = 1;
   if (tags) throw new Error('_newItemPile tags not yet supported'); // TODO
 
-  var ourName = mcName; // TODO: translate
+  let ourName;
+
+  if (mcBlocks.mcBlockName2Voxel[mcName]) {
+    ourName = mcBlocks.mcBlockName2Voxel[mcName];
+  } else {
+    ourName = mcName; // TODO: translate items too
+  } // TODO: substitute unrecognized
 
   return new ItemPile(ourName, count);
 }
