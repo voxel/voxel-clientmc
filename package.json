@@ -13,7 +13,6 @@
   "dependencies": {
     "duplexer": "^0.1.1",
     "ever": "0.0.3",
-    "is-typedarray": "0.0.0",
     "itempile": "^1.0.2",
     "ndarray": "^1.0.14",
     "tellraw2dom": "0.0.4",
