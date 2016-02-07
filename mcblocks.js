@@ -4,42 +4,94 @@ const minecraft_data = require('minecraft-data');
 
 const BLOCKS_MC_VERSION = '1.8.9'; // TODO: 1.9?
 
-const mcBlockID2Voxel = {
-  0: 'air',
-  1: 'stone',
-  2: 'grass',
-  3: 'dirt',
-  4: 'cobblestone',
-  5: 'plankOak',
-  //6: 'sapling',
-  7: 'bedrock',
-  8: 'waterFlow',
-  9: 'water',
-  10: 'lavaFlow',
-  11: 'lavaFlow',
-  12: 'sand',
-  13: 'gravel',
-  14: 'oreGold',
-  15: 'oreIron',
-  16: 'oreCoal',
-  17: 'logOak',
-  18: 'leavesOak',
-  19: 'sponge',
-  20: 'glass',
-  21: 'oreLapis',
-  22: 'blockLapis',
-  23: 'dispenser', // TODO: direction
-  24: 'sandstone',
-  25: 'noteblock',
-  //26: 'bed',
-  //27: 'railPowered',
-  //28: 'railDetector',
-  //29: 'pistonSticky',
-  //30: 'web',
-  //31: 'shrubDead',
-  //33: 'piston',
-  //34: 'pistonHead',
-  //35: 'wool',
+const blocksByName = minecraft_data(BLOCKS_MC_VERSION).blocksByName;
+const blocksArray = minecraft_data(BLOCKS_MC_VERSION).blocksArray;
+
+// Translate the MC block name to a block name recognized by various voxel.js plugins
+const mcBlockName2Voxel = {
+  air: 'air',
+  bedrock: 'bedrock',
+  bookshelf: 'bookshelf',
+  brick_block: 'brick',
+  brown_mushroom_block: 'mushroomBigRed',
+  cactus: 'cactus',
+  chest: 'chest',               // voxel-chest
+  clay: 'clay',
+  coal_block: 'blockCoal',
+  coal_ore: 'oreCoal',
+  cobblestone: 'cobblestone',
+  command_block: 'command',
+  crafting_table: 'workbench',  // voxel-workbench
+  diamond_block: 'blockDiamond',// voxel-decorative
+  diamond_ore: 'oreDiamond',
+  dirt: 'dirt',
+  dispenser: 'dispenser',       // TODO: direction
+  dropper: 'dropper',
+  emerald_block: 'blockEmerald',
+  emerald_ore: 'oreEmerald',
+  end_portal_frame: 'endPortalFrame',
+  end_stone: 'endstone',
+  farmland: 'farmland',
+  flowing_lava: 'lavaFlow',
+  flowing_water: 'waterFlow',
+  furnace: 'furnace',           // TODO: lit
+  glass: 'glass',
+  glowstone: 'glowstone',
+  gold_block: 'blockGold',      // voxel-decorative
+  gold_ore: 'oreGold',
+  grass: 'grass',
+  gravel: 'gravel',
+  hardened_clay: 'clayHardened',
+  hay_block: 'hayBale',
+  ice: 'ice',
+  iron_block: 'blockIron',      // voxel-decorative
+  iron_ore: 'oreIron',
+  jukebox: 'jukebox',
+  lapis_block: 'blockLapis',
+  lapis_ore: 'oreLapis',
+  lava: 'lavaFlow',
+  leaves: 'leavesOak',
+  leaves2: 'leavesAcacia',
+  lit_furnace: 'furnace',
+  lit_pumpkin: 'pumpkinCarvedNorthLit', // voxel-pumpkin
+  lit_redstone_lamp: 'lampOn',
+  lit_redstone_ore: 'oreRedstone',  // TODO: glowing
+  log: 'logOak',
+  log2: 'logAcacia',
+  melon_block: 'blockMelon',
+  monster_egg: 'stone',             // TODO: silverfish
+  mossy_cobblestone: 'stoneMossy',
+  mycelium: 'mycelium',
+  nether_brick: 'brickNether',
+  netherrack: 'netherrack',
+  noteblock: 'noteblock',
+  obsidian: 'obsidian',
+  planks: 'plankOak',
+  portal: 'portal',
+  pumpkin: 'pumpkinCarvedNorth',    // voxel-pumpkin
+  quartz_block: 'blockQuartz',
+  quartz_ore: 'oreNetherQuartz',
+  red_mushroom_block: 'mushroomBigBrown',
+  redstone_block: 'blockRedstone',
+  redstone_lamp: 'lampOff',
+  redstone_ore: 'oreRedstone',
+  sand: 'sand',
+  sandstone: 'sandstone',
+  snow: 'snow',                     // TODO: non-block snow (snowball?)
+  snow_layer: 'snow',
+  soul_sand: 'soulsand',
+  sponge: 'sponge',
+  stained_hardened_clay: 'clayStainedWhite',
+  stone: 'stone',
+  stonebrick: 'stoneBrick',         // voxel-decorative
+  /* TODO
+  '98:1': 'stoneBrickMossy',
+  '98:2': 'stoneBrickCracked',
+  '98:3': 'stoneBrickCarved',
+  */
+  tnt: 'tnt',
+  water: 'water',
+    /* TODO
   '35:0': 'woolWhite',
   '35:1': 'woolOrange',
   '35:2': 'woolMagenta',
@@ -56,171 +108,22 @@ const mcBlockID2Voxel = {
   '35:13': 'woolGreen',
   '35:14': 'woolRed',
   '35:15': 'woolBlack',
-  //36: ?
-  //37: 'dandelion',
-  //38: 'poppy',
-  //39: 'mushroomBrown',
-  //40: 'mushroomRed',
-  41: 'blockGold', // voxel-decorative
-  42: 'blockIron', // voxel-decorative
-  //43: 'slabDouble',
-  //44: 'slabStone',
-  45: 'brick',
-  46: 'tnt',
-  47: 'bookshelf',
-  48: 'stoneMossy',
-  49: 'obsidian',
-  //50: 'torch',
-  //51: 'fire',
-  //52: 'monsterSpawner',
-  //53: 'stairsOakWood',
-  54: 'chest', // voxel-chest
-  //55: 'redstoneWire',
-  56: 'oreDiamond',
-  57: 'blockDiamond', // voxel-decorative
-  58: 'workbench', // voxel-workbench
-  //59: 'crops',
-  60: 'farmland',
-  61: 'furnace',
-  62: 'furnace', // TODO: lit
-  //63: 'signPost',
-  //64: 'doorWood',
-  //65: 'ladder',
-  //66: 'rails',
-  //67: 'stairsCobble',
-  //68: 'signWall',
-  //69: 'lever',
-  //70: 'plateStone',
-  //71: 'doorIron',
-  //72: 'plateWood',
-  73: 'oreRedstone',
-  74: 'oreRedstone', // TODO: glowing
-  //75: 'redstoneTorchOff',
-  //76: 'redstoneTorchOn',
-  //77: 'buttonStone',
-  78: 'snow', // TODO: non-block snow
-  79: 'ice',
-  80: 'snow',
-  81: 'cactus',
-  82: 'clay',
-  //83: 'sugarcane',
-  84: 'jukebox',
-  //85: 'fence',
-  86: 'pumpkinCarvedNorth', // voxel-pumpkin
-  87: 'netherrack',
-  88: 'soulsand',
-  89: 'glowstone',
-  90: 'portal',
-  91: 'pumpkinCarvedNorthLit', // voxel-pumpkin
-  //92: 'cake',
-  //93: 'repeaterOff',
-  //94: 'repeaterOn',
-  //95: 'glassStained',
-  //96: 'hatch',
-  97: 'stone', // silverfish
-  98: 'stoneBrick', // voxel-decorative
-  //'98:1': 'stoneBrickMossy', // TODO
-  //'98:2': 'stoneBrickCracked',
-  //'98:3': 'stoneBrickCarved',
-  99: 'mushroomBigRed',
-  100: 'mushroomBigBrown',
-  //101: 'barsIron',
-  //102: 'glassPane',
-  103: 'blockMelon',
-  //104: 'pumpkinStem',
-  //105: 'melonStem',
-  //106: 'vines',
-  //107: 'fenceGate',
-  //108: 'stairsBrick',
-  //109: 'stairsStoneBrick',
-  110: 'mycelium',
-  //110: 'lilypad',
-  112: 'brickNether',
-  //113: 'fenceNether',
-  //114: 'stairsNether',
-  //115: 'netherwart',
-  //116: 'enchantmentTable',
-  //117: 'brewingStand',
-  //118: 'cauldron',
-  //119: 'endPortal',
-  120: 'endPortalFrame',
-  121: 'endstone',
-  //122: 'dragonEgg',
-  123: 'lampOff',
-  124: 'lampOn',
-  //125: 'slabDoubleOak',
-  //126: 'slabOak',
-  //127: 'cocoa',
-  //128: 'stairsSandstone',
-  129: 'oreEmerald',
-  //130: 'chestEnder',
-  //131: 'tripwireHook',
-  //132: 'tripwire',
-  133: 'blockEmerald',
-  //134: 'stairsSpruce',
-  //135: 'stairsBrich',
-  //136: 'stairsJungle',
-  137: 'command',
-  //138: 'beacon',
-  //139: 'wallCobblestone',
-  //140: 'flowerPot',
-  //141: 'carrots',
-  //142: 'potatoes',
-  //143: 'buttonWood',
-  //144: 'headMob',
-  //145: 'anvil',
-  //146: 'chestTrapped',
-  //147: 'plateLight',
-  //148: 'plateHeavy',
-  //149: 'comparatorOff',
-  //150: 'comparatorOn',
-  //151: 'daylightSensor',
-  152: 'blockRedstone',
-  153: 'oreNetherQuartz',
-  //154: 'hopper',
-  155: 'blockQuartz',
-  //156: 'stairsQuartz',
-  //157: 'railActivator',
-  158: 'dropper',
-  159: 'clayStainedWhite',
-  //160: 'glassPaneStained',
-  161: 'leavesAcacia',
-  162: 'logAcacia',
-  //163: 'stairsAcacia',
-  //164: 'stairsDarkOak',
-  //165: 'blockSlime',
-  //166: 'barrier',
-  //167: 'hatchIron',
-  170: 'hayBale',
-  //171: 'carpet',
-  172: 'clayHardened',
-  173: 'blockCoal',
-  //174: 'icePacked',
-  //175: 'sunflower',
-}; 
+  */
+}
 
-/*
-Object.keys(blocks).forEach((name) => {
-  const block = blocks[name];
-  //mcBlockID2Voxel
-  //console.log(name, block);
+const mcBlockID2Voxel = {
+  default: 'missing'
+};
+
+Object.keys(mcBlockName2Voxel).forEach((mcName) => {
+  const ourName = mcBlockName2Voxel[mcName];
+
+  const blockInfo = blocksByName[mcName];
+
+  mcBlockID2Voxel[blockInfo.id] = ourName;
 });
 
-*/
-
-const blocksByName = minecraft_data(BLOCKS_MC_VERSION).blocksByName;
-const blocksArray = minecraft_data(BLOCKS_MC_VERSION).blocksArray;
-
-const mcBlockName2Voxel = {};
-
-Object.keys(mcBlockID2Voxel).forEach((id) => {
-  const voxelName = mcBlockID2Voxel[id];
-
-  //console.log(id,voxelName,blocksArray[id]);
-  if (!blocksArray[id]) return;
-  const mcName = blocksArray[id].name;
-
-  mcBlockName2Voxel[mcName] = voxelName;
-});
-
-console.log(JSON.stringify(mcBlockName2Voxel, null, '  '));
+module.exports = {
+  mcBlockName2Voxel,
+  mcBlockID2Voxel,
+};
