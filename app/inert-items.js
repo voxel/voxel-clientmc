@@ -1,6 +1,6 @@
 'use strict';
 
-const BLOCKS_MC_VERSION = '1.8.9'; // TODO: 1.9?
+const ITEMS_MC_VERSION = '1.8.9'; // TODO: 1.9?
 const minecraft_data = require('minecraft-data');
 
 module.exports = (game, opts) => {
@@ -27,7 +27,7 @@ class InertItemsPlugin
   }
 
   enable() {
-    const itemsByName = minecraft_data(BLOCKS_MC_VERSION).itemsByName;
+    const itemsByName = minecraft_data(ITEMS_MC_VERSION).itemsByName;
 
     Object.keys(itemsByName).forEach((name) => {
       const item = itemsByName[name];
