@@ -10,7 +10,7 @@ var workerstream = require('workerstream');
 var vec3Object = require('vec3'); // note: object type used by mineflayer, NOT gl-vec3 which is just a typed array :(
 var typedArrayToBuffer = require('typedarray-to-buffer');
 var ItemPile = require('itempile');
-var mcBlocks = require('./mcblocks');
+var mcData = require('./mcdata');
 
 module.exports = function(game, opts) {
   return new ClientMC(game, opts);
@@ -61,7 +61,7 @@ function ClientMC(game, opts) {
   // Translate network block indices to our block names
   // http://minecraft.gamepedia.com/Data_values#Block_IDs http://minecraft-ids.grahamedgecombe.com/
   // TODO: get translation table from network protocol? I think Forge supports custom blocks with the map sent over the network?
-  opts.mcBlocks = opts.mcBlocks || mcBlocks.mcBlockID2Voxel;
+  opts.mcData = opts.mcBlocks || mcData.mcBlockID2Voxel;
     
   this.enable();
 }
@@ -180,8 +180,8 @@ ClientMC.prototype._newItemPile = function(mcName, count, tags) {
 
   let ourName;
 
-  if (mcBlocks.mcBlockName2Voxel[mcName]) {
-    ourName = mcBlocks.mcBlockName2Voxel[mcName];
+  if (mcData.mcBlockName2Voxel[mcName]) {
+    ourName = mcData.mcBlockName2Voxel[mcName];
   } else {
     ourName = mcName; // TODO: translate items too
   } // TODO: substitute unrecognized
