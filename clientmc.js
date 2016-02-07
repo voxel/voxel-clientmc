@@ -369,6 +369,15 @@ ClientMC.prototype.sound = function(event) {
   }
 };
 
+ClientMC.prototype._newItemPile = function(mcName, count, tags) {
+  if (count === undefined) count = 1;
+  if (tags) throw new Error('_newItemPile tags not yet supported'); // TODO
+
+  var ourName = mcName; // TODO: translate
+
+  return new ItemPile(ourName, count);
+}
+
 ClientMC.prototype.setSlot = function(event) {
   console.log('setSlot',event);
   if (!this.carryPlugin) return;
@@ -417,9 +426,7 @@ ClientMC.prototype.setSlot = function(event) {
     var mcName = event.newItem.name;
     var count = event.newItem.count;
 
-    var ourName = mcName; // TODO
-
-    pile = new ItemPile(ourName, count);
+    pile = this._newItemPile(mcName, count);
   }
 
   this.carryPlugin.inventory.set(ourSlot, pile);
