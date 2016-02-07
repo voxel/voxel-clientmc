@@ -61,7 +61,7 @@ function ClientMC(game, opts) {
   // Translate network block indices to our block names
   // http://minecraft.gamepedia.com/Data_values#Block_IDs http://minecraft-ids.grahamedgecombe.com/
   // TODO: get translation table from network protocol? I think Forge supports custom blocks with the map sent over the network?
-  opts.mcData = opts.mcBlocks || mcData.mcBlockID2Voxel;
+  opts.mcBlocks = opts.mcBlocks || mcData.mcBlockID2Voxel;
     
   this.enable();
 }

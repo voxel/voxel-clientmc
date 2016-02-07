@@ -1,6 +1,6 @@
 'use strict';
 
-const mcBlocks = require('../mcblocks');
+const mcData = require('../mcdata');
 
 module.exports = function(game, opts) {
   return new BlocksPlugin(game, opts);
@@ -18,7 +18,7 @@ function BlocksPlugin(game, opts) {
 }
 
 BlocksPlugin.prototype.enable = function() {
-  const inertBlockProps = mcBlocks.inertBlockProps;
+  const inertBlockProps = mcData.inertBlockProps;
   Object.keys(inertBlockProps).forEach((name) => {
     const props = inertBlockProps[name];
 

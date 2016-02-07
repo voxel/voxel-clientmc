@@ -199,8 +199,16 @@ Object.keys(mcBlockName2Voxel).forEach((mcName) => {
   mcBlockID2Voxel[blockInfo.id] = ourName;
 });
 
+
+const inertItemProps = {
+  wheat_seeds: {itemTexture: 'items/seeds_wheat', displayName: 'Seeds'},
+  // TODO: more items
+  // TODO: default
+};
+
 module.exports = {
   mcBlockName2Voxel,
   mcBlockID2Voxel,
   inertBlockProps,
+  inertItemProps,
 };
