@@ -1,16 +1,18 @@
 machine:
-   java:
-       version: oraclejdk7
+  node:
+    version: 4
+  java:
+     version: oraclejdk7
 checkout:
-    post:
-        # clone the wsmc submodule (see https://circleci.com/docs/configuration)
-        - git submodule sync
-        - git submodule update --init
-        # package voxel-clientmc
-        - browserify app/app.js > app/wsmc/src/main/resources/www/bundle.js
-        # build wsmc/Java
-        - (cd app/wsmc; mvn package)
+  post:
+    # clone the wsmc submodule (see https://circleci.com/docs/configuration)
+    - git submodule sync
+    - git submodule update --init
+    # package voxel-clientmc
+    - browserify app/app.js > app/wsmc/src/main/resources/www/bundle.js
+    # build wsmc/Java
+    - (cd app/wsmc; mvn package)
 
 test:
-    post:
-        - cp -r app/wsmc/target/wsmc*.jar $CIRCLE_ARTIFACTS/
+  post:
+    - cp -r app/wsmc/target/wsmc*.jar $CIRCLE_ARTIFACTS/
