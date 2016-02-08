@@ -20,7 +20,7 @@ module.exports = (clientmc) => {
     return new ItemPile(ourName, count);
   }
 
-  clientmc.setSlot = (event) => {
+  clientmc.handlers.setSlot = (event) => {
     console.log('setSlot',event);
     if (!clientmc.carryPlugin) return;
 
