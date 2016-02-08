@@ -289,7 +289,7 @@ const inertItemProps = {
   golden_sword: {itemTexture: 'items/gold_sword', displayName: 'Golden Sword'},
   gunpowder: {itemTexture: 'items/gunpowder', displayName: 'Gunpowder'},
   hopper_minecart: {itemTexture: 'items/minecart_hopper', displayName: 'Minecart with Hopper'},
-  iron_axe: {itemTexture: 'items/iron_axe', displayName: 'Iron Axe'},
+  //iron_axe: {itemTexture: 'items/iron_axe', displayName: 'Iron Axe'}, // voxel-pickaxe
   iron_boots: {itemTexture: 'items/iron_boots', displayName: 'Iron Boots'},
   iron_chestplate: {itemTexture: 'items/iron_chestplate', displayName: 'Iron Chestplate'},
   iron_door: {itemTexture: 'items/door_iron', displayName: 'Iron Door'},
@@ -298,8 +298,8 @@ const inertItemProps = {
   iron_horse_armor: {itemTexture: 'items/iron_horse_armor', displayName: 'Iron Horse Armor'},
   iron_ingot: {itemTexture: 'items/iron_ingot', displayName: 'Iron Ingot'},
   iron_leggings: {itemTexture: 'items/iron_leggings', displayName: 'Iron Leggings'},
-  iron_pickaxe: {itemTexture: 'items/iron_pickaxe', displayName: 'Iron Pickaxe'},
-  iron_shovel: {itemTexture: 'items/iron_shovel', displayName: 'Iron Shovel'},
+  //iron_pickaxe: {itemTexture: 'items/iron_pickaxe', displayName: 'Iron Pickaxe'}, // voxel-pickaxe
+  //iron_shovel: {itemTexture: 'items/iron_shovel', displayName: 'Iron Shovel'}, // voxel-pickaxe
   iron_sword: {itemTexture: 'items/iron_sword', displayName: 'Iron Sword'},
   item_frame: {itemTexture: 'items/item_frame', displayName: 'Item Frame'},
   jungle_door: {itemTexture: 'items/door_jungle', displayName: 'Jungle Door'},
@@ -362,10 +362,10 @@ const inertItemProps = {
   spider_eye: {itemTexture: 'items/spider_eye', displayName: 'Spider Eye'},
   spruce_door: {itemTexture: 'items/door_spruce', displayName: 'Spruce Door'},
   //stick: {itemTexture: 'items/stick', displayName: 'Stick'}, // voxel-pickaxe
-  stone_axe: {itemTexture: 'items/stone_axe', displayName: 'Stone Axe'},
+  //stone_axe: {itemTexture: 'items/stone_axe', displayName: 'Stone Axe'}, // voxel-pickaxe
   stone_hoe: {itemTexture: 'items/stone_hoe', displayName: 'Stone Hoe'},
-  stone_pickaxe: {itemTexture: 'items/stone_pickaxe', displayName: 'Stone Pickaxe'},
-  stone_shovel: {itemTexture: 'items/stone_shovel', displayName: 'Stone Shovel'},
+  //stone_pickaxe: {itemTexture: 'items/stone_pickaxe', displayName: 'Stone Pickaxe'}, // voxel-pickaxe
+  //stone_shovel: {itemTexture: 'items/stone_shovel', displayName: 'Stone Shovel'}, // voxel-pickaxe
   stone_sword: {itemTexture: 'items/stone_sword', displayName: 'Stone Sword'},
   string: {itemTexture: 'items/string', displayName: 'String'},
   sugar: {itemTexture: 'items/sugar', displayName: 'Sugar'},
@@ -373,10 +373,10 @@ const inertItemProps = {
   water_bucket: {itemTexture: 'items/bucket_water', displayName: 'Water Bucket'},
   wheat: {itemTexture: 'items/wheat', displayName: 'Wheat'},
   wheat_seeds: {itemTexture: 'items/seeds_wheat', displayName: 'Seeds'},
-  wooden_axe: {itemTexture: 'items/wood_axe', displayName: 'Wooden Axe'},
+  //wooden_axe: {itemTexture: 'items/wood_axe', displayName: 'Wooden Axe'}, // voxel-pickaxe
   wooden_hoe: {itemTexture: 'items/wood_hoe', displayName: 'Wooden Hoe'},
-  wooden_pickaxe: {itemTexture: 'items/wood_pickaxe', displayName: 'Wooden Pickaxe'},
-  wooden_shovel: {itemTexture: 'items/wood_shovel', displayName: 'Wooden Shovel'},
+  //wooden_pickaxe: {itemTexture: 'items/wood_pickaxe', displayName: 'Wooden Pickaxe'}, // voxel-pickaxe
+  //wooden_shovel: {itemTexture: 'items/wood_shovel', displayName: 'Wooden Shovel'}, // voxel-pickaxe
   wooden_sword: {itemTexture: 'items/wood_sword', displayName: 'Wooden Sword'},
   writable_book: {itemTexture: 'items/book_writable', displayName: 'Book and Quill'},
   written_book: {itemTexture: 'items/book_written', displayName: 'Written Book'},
@@ -433,6 +433,22 @@ const mcItemName2Voxel = {
   melon: 'melon',
   pumpkin_pie: 'pumpkinPie',
   spider_eye: 'spiderEye',
+
+  // voxel-pickaxe
+  wooden_pickaxe: 'pickaxeWood',
+  stone_pickaxe: 'pickaxeStone',
+  iron_pickaxe: 'pickaxeIron',
+
+  wooden_shovel: 'spadeWood',
+  stone_shovel: 'spadeStone',
+  iron_shovel: 'spadeIron',
+
+  wooden_axe: 'axeWood',
+  stone_axe: 'axeStone',
+  iron_axe: 'ironAxe',
+  // TODO: diamond pick/axe/spade https://github.com/voxel/voxel-pickaxe/issues/5
+
+
   // note: appended with inertItemProps below
 };
 
