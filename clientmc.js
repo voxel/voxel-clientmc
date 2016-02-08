@@ -59,6 +59,23 @@ class ClientMC
     // TODO: get translation table from network protocol? I think Forge supports custom blocks with the map sent over the network?
     opts.mcBlocks = opts.mcBlocks || mcData.mcBlockID2Voxel;
 
+    // webworker -> main thread handler callbacks (augmented by plugins)
+    this.handlers = {
+      packet: (event) => {
+        this.websocketStream.write(typedArrayToBuffer(event.data));
+      },
+
+      error: (event) => {
+        this.console.log('Disconnected with error: ' + event.error);
+        this.game.plugins.disable('voxel-clientmc');
+      },
+
+      close: (event) => {
+        this.console.log('Websocket closed');
+        this.game.plugins.disable('voxel-clientmc');
+      }
+    };
+
     require('./position.js')(this);
     require('./kick.js')(this);
     require('./chunks.js')(this);
@@ -71,20 +88,6 @@ class ClientMC
     this.enable();
   }
 
-  // handlers called from mfworker
-  packet(event) {
-    this.websocketStream.write(typedArrayToBuffer(event.data));
-  }
-
-  error(event) {
-    this.console.log('Disconnected with error: ' + event.error);
-    this.game.plugins.disable('voxel-clientmc');
-  }
-
-  close(event) {
-    this.console.log('Websocket closed');
-    this.game.plugins.disable('voxel-clientmc');
-  }
 
   enable() {
     // only begin connecting to server after voxel-engine is initialized,
@@ -135,7 +138,7 @@ class ClientMC
       this.mfworkerStream.on('data', (event) => {
         //console.log('mfworkerStream event',event);
         const cmd = event.cmd;
-        const f = this[cmd];
+        const f = this.handlers[cmd];
         if (!f) {
           console.log('Unhandled mfworker cmd',cmd,event);
           return;

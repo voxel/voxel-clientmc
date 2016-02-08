@@ -1,17 +1,17 @@
 'use strict';
 
 module.exports = (clientmc) => {
-  clientmc.blockBreakProgressObserved = (event) => {
+  clientmc.handlers.blockBreakProgressObserved = (event) => {
     const texture = 'destroy_stage_' + event.destroyStage;
 
-    clientmc.blockBreakProgress(event.position, texture);
+    blockBreakProgress(event.position, texture);
   };
 
-  clientmc.blockBreakProgressEnd = (event) => {
-    clientmc.blockBreakProgress(event.position, null);
+  clientmc.handlers.blockBreakProgressEnd = (event) => {
+    blockBreakProgress(event.position, null);
   };
 
-  clientmc.blockBreakProgress = (position, texture) => {
+  function blockBreakProgress(position, texture) {
     // MC's break animations don't include the block face, so include them all
     const normals = [
       [1,0,0],

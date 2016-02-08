@@ -3,11 +3,11 @@
 const ndarray = require('ndarray');
 
 module.exports = (clientmc) => {
-  clientmc.setBlock = (event) => {
+  clientmc.handlers.setBlock = (event) => {
     clientmc.game.setBlock(event.position, event.value);
   };
 
-  clientmc.chunks = (event) => {
+  clientmc.handlers.chunks = (event) => {
     clientmc.game.plugins.disable('voxel-flatland');
 
     for (let key in event.chunks) {

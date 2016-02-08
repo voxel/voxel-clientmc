@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = (clientmc) => {
-  clientmc.sound = (event) => {
+  clientmc.handlers.sound = (event) => {
     //console.log('sound',event);
     if (clientmc.sfxPlugin) {
       const path = event.soundName.replace('.', '/');
