@@ -114,7 +114,7 @@ class ClientMC extends EventEmitter
     const hash = document.location.hash;
     if (hash.length < 2) {
       // try anonymous auth
-      username = 'mcwebchatuserX';
+      username = 'user1';
     } else {
       username = hash.substring(1); // remove #
     }
@@ -128,6 +128,7 @@ class ClientMC extends EventEmitter
 
       // pass some useful data to the worker
       this.mfworkerStream.write({cmd: 'setVariables',
+        username: username,
         translateBlockIDs: this.translateBlockIDs,
         reverseBlockIDs: this.reverseBlockIDs,
         defaultBlockID: this.defaultBlockID,
