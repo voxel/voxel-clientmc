@@ -1,0 +1,3 @@
+[submodule "app/wsmc"]
+	path = app/wsmc
+	url = https://github.com/deathcap/wsmc
