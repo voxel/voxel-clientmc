@@ -2,10 +2,11 @@
 
 const minecraft_data = require('minecraft-data');
 
-const BLOCKS_MC_VERSION = '1.8.9'; // TODO: 1.9?
+const DATA_MC_VERSION = '1.8.9'; // TODO: 1.9?
 
-const blocksByName = minecraft_data(BLOCKS_MC_VERSION).blocksByName;
-const blocksArray = minecraft_data(BLOCKS_MC_VERSION).blocksArray;
+const blocksByName = minecraft_data(DATA_MC_VERSION).blocksByName;
+const blocksArray = minecraft_data(DATA_MC_VERSION).blocksArray;
+const itemsByName = minecraft_data(DATA_MC_VERSION).itemsByName;
 
 // Translate the MC block name to a block name recognized by various voxel.js plugins
 const mcBlockName2Voxel = {
@@ -201,10 +202,219 @@ Object.keys(mcBlockName2Voxel).forEach((mcName) => {
 
 
 const inertItemProps = {
+  acacia_door: {itemTexture: 'items/door_acacia', displayName: 'Acacia Door'},
+  //apple: {itemTexture: 'items/apple', displayName: 'Apple'}, // voxel-food
+  armor_stand: {itemTexture: 'items/wooden_armorstand', displayName: 'Armor Stand'},
+  arrow: {itemTexture: 'items/arrow', displayName: 'Arrow'},
+  baked_potato: {itemTexture: 'items/potato_baked', displayName: 'Baked Potato'},
+  bed: {itemTexture: 'items/bed', displayName: 'Bed'},
+  beef: {itemTexture: 'items/beef_raw', displayName: 'Raw Beef'},
+  birch_door: {itemTexture: 'items/door_birch', displayName: 'Birch Door'},
+  blaze_powder: {itemTexture: 'items/blaze_powder', displayName: 'Blaze Powder'},
+  blaze_rod: {itemTexture: 'items/blaze_rod', displayName: 'Blaze Rod'},
+  boat: {itemTexture: 'items/boat', displayName: 'Boat'},
+  bone: {itemTexture: 'items/bone', displayName: 'Bone'},
+  book: {itemTexture: 'items/book_normal', displayName: 'Book'},
+  bow: {itemTexture: 'items/bow_standby', displayName: 'Bow'},
+  bowl: {itemTexture: 'items/bowl', displayName: 'Bowl'},
+  //bread: {itemTexture: 'items/bread', displayName: 'Bread'}, // voxel-food
+  brewing_stand: {itemTexture: 'items/brewing_stand', displayName: 'Brewing Stand'},
+  //brick: {itemTexture: 'items/brick', displayName: 'Brick'},    // TODO: disambiguate vs block of the same name
+  bucket: {itemTexture: 'items/bucket_empty', displayName: 'Bucket'},
+  //cake: {itemTexture: 'items/cake', displayName: 'Cake'}, // voxel-food
+  //carrot: {itemTexture: 'items/carrot', displayName: 'Carrot'}, // voxel-food
+  carrot_on_a_stick: {itemTexture: 'items/carrot_on_a_stick', displayName: 'Carrot on a Stick'},
+  cauldron: {itemTexture: 'items/cauldron', displayName: 'Cauldron'},
+  chainmail_boots: {itemTexture: 'items/chainmail_boots', displayName: 'Chain Boots'},
+  chainmail_chestplate: {itemTexture: 'items/chainmail_chestplate', displayName: 'Chain Chestplate'},
+  chainmail_helmet: {itemTexture: 'items/chainmail_helmet', displayName: 'Chain Helmet'},
+  chainmail_leggings: {itemTexture: 'items/chainmail_leggings', displayName: 'Chain Leggings'},
+  chest_minecart: {itemTexture: 'items/minecart_chest', displayName: 'Minecart with Chest'},
+  chicken: {itemTexture: 'items/chicken_raw', displayName: 'Raw Chicken'},
+  clay_ball: {itemTexture: 'items/clay_ball', displayName: 'Clay'},
+  coal: {itemTexture: 'items/coal', displayName: 'Coal'},
+  command_block_minecart: {itemTexture: 'items/minecart_command_block', displayName: 'Minecart with Command Block'},
+  comparator: {itemTexture: 'items/comparator', displayName: 'Redstone Comparator'},
+  cooked_beef: {itemTexture: 'items/beef_cooked', displayName: 'Steak'},
+  cooked_chicken: {itemTexture: 'items/chicken_cooked', displayName: 'Cooked Chicken'},
+  cooked_mutton: {itemTexture: 'items/mutton_cooked', displayName: 'Cooked Mutton'},
+  cooked_porkchop: {itemTexture: 'items/porkchop_cooked', displayName: 'Cooked Porkchop'},
+  cooked_rabbit: {itemTexture: 'items/rabbit_cooked', displayName: 'Cooked Rabbit'},
+  //cookie: {itemTexture: 'items/cookie', displayName: 'Cookie'}, // voxel-food
+  dark_oak_door: {itemTexture: 'items/door_dark_oak', displayName: 'Dark Oak Door'},
+  diamond: {itemTexture: 'items/diamond', displayName: 'Diamond'},
+  diamond_axe: {itemTexture: 'items/diamond_axe', displayName: 'Diamond Axe'},
+  diamond_boots: {itemTexture: 'items/diamond_boots', displayName: 'Diamond Boots'},
+  diamond_chestplate: {itemTexture: 'items/diamond_chestplate', displayName: 'Diamond Chestplate'},
+  diamond_helmet: {itemTexture: 'items/diamond_helmet', displayName: 'Diamond Helmet'},
+  diamond_hoe: {itemTexture: 'items/diamond_hoe', displayName: 'Diamond Hoe'},
+  diamond_horse_armor: {itemTexture: 'items/diamond_horse_armor', displayName: 'Diamond Horse Armor'},
+  diamond_leggings: {itemTexture: 'items/diamond_leggings', displayName: 'Diamond Leggings'},
+  diamond_pickaxe: {itemTexture: 'items/diamond_pickaxe', displayName: 'Diamond Pickaxe'},
+  diamond_shovel: {itemTexture: 'items/diamond_shovel', displayName: 'Diamond Shovel'},
+  diamond_sword: {itemTexture: 'items/diamond_sword', displayName: 'Diamond Sword'},
+  egg: {itemTexture: 'items/egg', displayName: 'Egg'},
+  emerald: {itemTexture: 'items/emerald', displayName: 'Emerald'},
+  enchanted_book: {itemTexture: 'items/book_enchanted', displayName: 'Enchanted Book'},
+  ender_eye: {itemTexture: 'items/ender_eye', displayName: 'Eye of Ender'},
+  ender_pearl: {itemTexture: 'items/ender_pearl', displayName: 'Ender Pearl'},
+  experience_bottle: {itemTexture: 'items/experience_bottle', displayName: 'Bottle o\' Enchanting'},
+  feather: {itemTexture: 'items/feather', displayName: 'Feather'},
+  fermented_spider_eye: {itemTexture: 'items/spider_eye_fermented', displayName: 'Fermented Spider Eye'},
+  filled_map: {itemTexture: 'items/map_filled', displayName: 'Map'},
+  fire_charge: {itemTexture: 'items/fireball', displayName: 'Fire Charge'},
+  firework_charge: {itemTexture: 'items/fireworks_charge', displayName: 'Firework Star'},
+  fireworks: {itemTexture: 'items/fireworks', displayName: 'Firework Rocket'},
+  fishing_rod: {itemTexture: 'items/fishing_rod_uncast', displayName: 'Fishing Rod'},
+  flint: {itemTexture: 'items/flint', displayName: 'Flint'},
+  flint_and_steel: {itemTexture: 'items/flint_and_steel', displayName: 'Flint and Steel'},
+  flower_pot: {itemTexture: 'items/flower_pot', displayName: 'Flower Pot'},
+  furnace_minecart: {itemTexture: 'items/minecart_furnace', displayName: 'Minecart with Furnace'},
+  ghast_tear: {itemTexture: 'items/ghast_tear', displayName: 'Ghast Tear'},
+  glass_bottle: {itemTexture: 'items/potion_bottle_empty', displayName: 'Glass Bottle'},
+  glowstone_dust: {itemTexture: 'items/glowstone_dust', displayName: 'Glowstone Dust'},
+  gold_ingot: {itemTexture: 'items/gold_ingot', displayName: 'Gold Ingot'},
+  gold_nugget: {itemTexture: 'items/gold_nugget', displayName: 'Gold Nugget'},
+  golden_apple: {itemTexture: 'items/apple_golden', displayName: 'Golden Apple'},
+  golden_axe: {itemTexture: 'items/gold_axe', displayName: 'Golden Axe'},
+  golden_boots: {itemTexture: 'items/gold_boots', displayName: 'Golden Boots'},
+  golden_carrot: {itemTexture: 'items/carrot_golden', displayName: 'Golden Carrot'},
+  golden_chestplate: {itemTexture: 'items/gold_chestplate', displayName: 'Golden Chestplate'},
+  golden_helmet: {itemTexture: 'items/gold_helmet', displayName: 'Golden Helmet'},
+  golden_hoe: {itemTexture: 'items/gold_hoe', displayName: 'Golden Hoe'},
+  golden_horse_armor: {itemTexture: 'items/gold_horse_armor', displayName: 'Golden Horse Armor'},
+  golden_leggings: {itemTexture: 'items/gold_leggings', displayName: 'Golden Leggings'},
+  golden_pickaxe: {itemTexture: 'items/gold_pickaxe', displayName: 'Golden Pickaxe'},
+  golden_shovel: {itemTexture: 'items/gold_shovel', displayName: 'Golden Shovel'},
+  golden_sword: {itemTexture: 'items/gold_sword', displayName: 'Golden Sword'},
+  gunpowder: {itemTexture: 'items/gunpowder', displayName: 'Gunpowder'},
+  hopper_minecart: {itemTexture: 'items/minecart_hopper', displayName: 'Minecart with Hopper'},
+  iron_axe: {itemTexture: 'items/iron_axe', displayName: 'Iron Axe'},
+  iron_boots: {itemTexture: 'items/iron_boots', displayName: 'Iron Boots'},
+  iron_chestplate: {itemTexture: 'items/iron_chestplate', displayName: 'Iron Chestplate'},
+  iron_door: {itemTexture: 'items/door_iron', displayName: 'Iron Door'},
+  iron_helmet: {itemTexture: 'items/iron_helmet', displayName: 'Iron Helmet'},
+  iron_hoe: {itemTexture: 'items/iron_hoe', displayName: 'Iron Hoe'},
+  iron_horse_armor: {itemTexture: 'items/iron_horse_armor', displayName: 'Iron Horse Armor'},
+  iron_ingot: {itemTexture: 'items/iron_ingot', displayName: 'Iron Ingot'},
+  iron_leggings: {itemTexture: 'items/iron_leggings', displayName: 'Iron Leggings'},
+  iron_pickaxe: {itemTexture: 'items/iron_pickaxe', displayName: 'Iron Pickaxe'},
+  iron_shovel: {itemTexture: 'items/iron_shovel', displayName: 'Iron Shovel'},
+  iron_sword: {itemTexture: 'items/iron_sword', displayName: 'Iron Sword'},
+  item_frame: {itemTexture: 'items/item_frame', displayName: 'Item Frame'},
+  jungle_door: {itemTexture: 'items/door_jungle', displayName: 'Jungle Door'},
+  lava_bucket: {itemTexture: 'items/bucket_lava', displayName: 'Lava Bucket'},
+  lead: {itemTexture: 'items/lead', displayName: 'Lead'},
+  leather: {itemTexture: 'items/leather', displayName: 'Leather'},
+  leather_boots: {itemTexture: 'items/leather_boots', displayName: 'Leather Boots'},
+  leather_chestplate: {itemTexture: 'items/leather_chestplate', displayName: 'Leather Tunic'},
+  leather_helmet: {itemTexture: 'items/leather_helmet', displayName: 'Leather Cap'},
+  leather_leggings: {itemTexture: 'items/leather_leggings', displayName: 'Leather Pants'},
+  magma_cream: {itemTexture: 'items/magma_cream', displayName: 'Magma Cream'},
+  map: {itemTexture: 'items/map_empty', displayName: 'Empty Map'},
+  //melon: {itemTexture: 'items/melon', displayName: 'Melon'}, // voxel-food
+  melon_seeds: {itemTexture: 'items/seeds_melon', displayName: 'Melon Seeds'},
+  milk_bucket: {itemTexture: 'items/bucket_milk', displayName: 'Milk'},
+  minecart: {itemTexture: 'items/minecart_normal', displayName: 'Minecart'},
+  mushroom_stew: {itemTexture: 'items/mushroom_stew', displayName: 'Mushroom Stew'},
+  mutton: {itemTexture: 'items/mutton_raw', displayName: 'Raw Mutton'},
+  name_tag: {itemTexture: 'items/name_tag', displayName: 'Name Tag'},
+  nether_star: {itemTexture: 'items/nether_star', displayName: 'Nether Star'},
+  nether_wart: {itemTexture: 'items/nether_wart', displayName: 'Nether Wart'},
+  netherbrick: {itemTexture: 'items/netherbrick', displayName: 'Nether Brick'},
+  painting: {itemTexture: 'items/painting', displayName: 'Painting'},
+  paper: {itemTexture: 'items/paper', displayName: 'Paper'},
+  poisonous_potato: {itemTexture: 'items/potato_poisonous', displayName: 'Poisonous Potato'},
+  porkchop: {itemTexture: 'items/porkchop_raw', displayName: 'Raw Porkchop'},
+  potato: {itemTexture: 'items/potato', displayName: 'Potato'},
+  prismarine_crystals: {itemTexture: 'items/prismarine_crystals', displayName: 'Prismarine Crystals'},
+  prismarine_shard: {itemTexture: 'items/prismarine_shard', displayName: 'Prismarine Shard'},
+  pumpkin_pie: {itemTexture: 'items/pumpkin_pie', displayName: 'Pumpkin Pie'},
+  pumpkin_seeds: {itemTexture: 'items/seeds_pumpkin', displayName: 'Pumpkin Seeds'},
+  quartz: {itemTexture: 'items/quartz', displayName: 'Nether Quartz'},
+  rabbit: {itemTexture: 'items/rabbit_raw', displayName: 'Raw Rabbit'},
+  rabbit_foot: {itemTexture: 'items/rabbit_foot', displayName: 'Rabbit\'s Foot'},
+  rabbit_hide: {itemTexture: 'items/rabbit_hide', displayName: 'Rabbit Hide'},
+  rabbit_stew: {itemTexture: 'items/rabbit_stew', displayName: 'Rabbit Stew'},
+  record_11: {itemTexture: 'items/record_11', displayName: '11 Disc'},
+  record_13: {itemTexture: 'items/record_13', displayName: '13 Disc'},
+  record_blocks: {itemTexture: 'items/record_blocks', displayName: 'Blocks Disc'},
+  record_cat: {itemTexture: 'items/record_cat', displayName: 'Cat Disc'},
+  record_chirp: {itemTexture: 'items/record_chirp', displayName: 'Chirp Disc'},
+  record_far: {itemTexture: 'items/record_far', displayName: 'Far Disc'},
+  record_mall: {itemTexture: 'items/record_mall', displayName: 'Mall Disc'},
+  record_mellohi: {itemTexture: 'items/record_mellohi', displayName: 'Mellohi Disc'},
+  record_stal: {itemTexture: 'items/record_stal', displayName: 'Stal Disc'},
+  record_strad: {itemTexture: 'items/record_strad', displayName: 'Strad Disc'},
+  record_wait: {itemTexture: 'items/record_wait', displayName: 'Wait Disc'},
+  record_ward: {itemTexture: 'items/record_ward', displayName: 'Ward Disc'},
+  redstone: {itemTexture: 'items/redstone_dust', displayName: 'Redstone'},
+  reeds: {itemTexture: 'items/reeds', displayName: 'Sugar Cane'},
+  repeater: {itemTexture: 'items/repeater', displayName: 'Redstone Repeater'},
+  rotten_flesh: {itemTexture: 'items/rotten_flesh', displayName: 'Rotten Flesh'},
+  saddle: {itemTexture: 'items/saddle', displayName: 'Saddle'},
+  //shears: {itemTexture: 'items/shears', displayName: 'Shears'}, // voxel-pumpkin
+  sign: {itemTexture: 'items/sign', displayName: 'Sign'},
+  slime_ball: {itemTexture: 'items/slimeball', displayName: 'Slimeball'},
+  snowball: {itemTexture: 'items/snowball', displayName: 'Snowball'},
+  spawn_egg: {itemTexture: 'items/spawn_egg', displayName: 'Spawn Egg'},
+  speckled_melon: {itemTexture: 'items/melon_speckled', displayName: 'Glistering Melon'},
+  spider_eye: {itemTexture: 'items/spider_eye', displayName: 'Spider Eye'},
+  spruce_door: {itemTexture: 'items/door_spruce', displayName: 'Spruce Door'},
+  //stick: {itemTexture: 'items/stick', displayName: 'Stick'}, // voxel-pickaxe
+  stone_axe: {itemTexture: 'items/stone_axe', displayName: 'Stone Axe'},
+  stone_hoe: {itemTexture: 'items/stone_hoe', displayName: 'Stone Hoe'},
+  stone_pickaxe: {itemTexture: 'items/stone_pickaxe', displayName: 'Stone Pickaxe'},
+  stone_shovel: {itemTexture: 'items/stone_shovel', displayName: 'Stone Shovel'},
+  stone_sword: {itemTexture: 'items/stone_sword', displayName: 'Stone Sword'},
+  string: {itemTexture: 'items/string', displayName: 'String'},
+  sugar: {itemTexture: 'items/sugar', displayName: 'Sugar'},
+  tnt_minecart: {itemTexture: 'items/minecart_tnt', displayName: 'Minecart with TNT'},
+  water_bucket: {itemTexture: 'items/bucket_water', displayName: 'Water Bucket'},
+  wheat: {itemTexture: 'items/wheat', displayName: 'Wheat'},
   wheat_seeds: {itemTexture: 'items/seeds_wheat', displayName: 'Seeds'},
+  wooden_axe: {itemTexture: 'items/wood_axe', displayName: 'Wooden Axe'},
+  wooden_hoe: {itemTexture: 'items/wood_hoe', displayName: 'Wooden Hoe'},
+  wooden_pickaxe: {itemTexture: 'items/wood_pickaxe', displayName: 'Wooden Pickaxe'},
+  wooden_shovel: {itemTexture: 'items/wood_shovel', displayName: 'Wooden Shovel'},
+  wooden_sword: {itemTexture: 'items/wood_sword', displayName: 'Wooden Sword'},
+  writable_book: {itemTexture: 'items/book_writable', displayName: 'Book and Quill'},
+  written_book: {itemTexture: 'items/book_written', displayName: 'Written Book'},
   // TODO: more items
   // TODO: default
 };
+// in absence of model definitions support https://github.com/deathcap/artpacks/issues/16, above output is based on:
+/*
+function readItemTextures() {
+  const itemTextures = {};
+  const fs = require('fs');
+  const root = '/tmp/assets/minecraft/models/item/'; // assumes jar extracted to /tmp
+  const filenames = fs.readdirSync(root);
+  filenames.forEach((filename) => {
+    if (filename.startsWith('.') || !filename.endsWith('.json')) return;
+
+    const modelData = fs.readFileSync(root + filename)
+    const model = JSON.parse(modelData);
+
+    if (model.parent !== 'builtin/generated') return; // only handle simple models for now
+
+    const texture = model.textures.layer0; // TODO: other layers (overlays)
+    const itemName = filename.replace('.json', '');
+
+    const itemInfo = itemsByName[itemName];
+    if (!itemInfo) return; // some sub-items are missing.. acacia_sapling, due to https://github.com/PrismarineJS/minecraft-data/issues/18
+    //console.log(itemName,itemInfo);
+
+    //console.log(itemName,texture);
+    itemTextures[itemName] = {itemTexture: texture, displayName:itemInfo.displayName};
+
+    console.log(`  ${itemName}: {itemTexture: '${texture}', displayName: '${itemInfo.displayName}'},`);
+  });
+  return itemTextures;
+}
+//console.log(JSON.stringify(readItemTextures(), null, '  '));
+readItemTextures();
+*/
 
 module.exports = {
   mcBlockName2Voxel,
@@ -212,3 +422,5 @@ module.exports = {
   inertBlockProps,
   inertItemProps,
 };
+
+
