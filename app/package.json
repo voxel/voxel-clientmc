@@ -61,5 +61,8 @@
   "scripts": {
     "start": "beefy app.js -- --debug"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "browserify": "^13.0.0"
+  }
 }

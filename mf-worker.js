@@ -8,12 +8,13 @@ const Writable = require('stream').Writable;
 const through = require('through');
 const ndarray = require('ndarray');
 const vec3Object = require('vec3'); // note: object type used by mineflayer, NOT gl-vec3 which is just a typed array :(
+const isBuffer = require('is-buffer');
 
 module.exports = function(self) {
   console.log('mf-worker initializing',self);
 
   self.readStream = ParentStream().pipe(toBufferStream).pipe(through(function write(event) {
-    if (Buffer.isBuffer(event)) {
+    if (isBuffer(event)) {
       // buffer data passes through to readStream -> duplexStream for bot
       this.queue(event);
     } else {
@@ -38,56 +39,6 @@ module.exports = function(self) {
   };
 
   self.duplexStream = duplexer(self.writeStream, self.readStream);
-
-  self.bot = mineflayer.createBot({
-    username: 'user1', // TODO
-    stream: self.duplexStream,
-    noPacketFramer: true
-  });
-
-  console.log('mf-worker bot',self.bot);
-
-  self.bot.on('game', function() {
-    console.log('mf-worker spawn position: '+JSON.stringify(self.bot.spawnPoint));
-    self.postMessage({cmd: 'spawn', spawnPoint: self.bot.spawnPoint});
-  });
-
-  self.bot.on('kicked', function(reason) {
-    self.postMessage({cmd: 'kicked', reason: reason});
-  });
-
-  self.bot.on('message', function(message) {
-    //self.console.logNode(tellraw2dom(message.json)); // TODO: send back to parent
-    console.log('mf-worker chat message', message);
-    self.postMessage({cmd: 'chat', message: message});
-  });
-
-  self.bot.on('error', function(err) {
-    console.log('WebSocket error', err);
-    self.postMessage({cmd: 'error', error: err});
-  });
-
-  self.bot.on('close', function() {
-    console.log('WebSocket closed');
-    self.postMessage({cmd: 'close'});
-  });
-
-  self.bot.on('chunkColumnLoad', function(point) {
-    self.addColumn(point);
-  });
-
-  let pos = [0,0,0];
-  self.bot.on('blockUpdate', function(oldBlock, newBlock) {
-    console.log('blockUpdate', oldBlock, newBlock);
-    const position = newBlock.position;
-    pos[0] = position.x;
-    pos[1] = position.y;
-    pos[2] = position.z;
-    const val = self.translateBlockID((newBlock.type << 4) | newBlock.metadata);
-    self.postMessage({cmd: 'setBlock', position: pos, value: val});
-    //self.game.setBlock(pos, val);
-  });
-  // TODO: also handle mass block update (event? would like to optimize multi_block_change, but..)
 
   // Translate packed MC block ID (lower 4 bits metadata, upper 12 block) to 16-bit voxel ID
   self.translateBlockID = function(mcPackedID) {
@@ -255,46 +206,6 @@ module.exports = function(self) {
     self.postMessage({cmd: 'chunks', chunks: chunkCache}); // TODO: transferrable
   };
 
-  self.bot.on('blockBreakProgressObserved', function(block, destroyStage) {
-    self.postMessage({cmd: 'blockBreakProgressObserved', position:[block.position.x, block.position.y, block.position.z], destroyStage: destroyStage});
-  });
-  self.bot.on('blockBreakProgressEnd', function(block) {
-    self.postMessage({cmd: 'blockBreakProgressEnd', position:[block.position.x, block.position.y, block.position.z]});
-  });
-
-
-  self.bot.on('move', function() { // TODO: also support entityMoved, other entities, players, mobs
-    // player move
-    self.postMessage({cmd: 'move', position:[self.bot.entity.position.x, self.bot.entity.position.y, self.bot.entity.position.z]});
-  });
-
-  self.bot.on('soundEffectHeard', function(soundName, position, volume, pitch) {
-    //console.log('soundEffectHeard',arguments);
-    // TODO: event.x,y,z(location?), volume, pitch - 3D sound https://github.com/deathcap/voxel-sfx/issues/3 Positional audio? (voxel-audio)
-    self.postMessage({cmd: 'sound', soundName:soundName});
-  });
-
-  self.bot._client.on('held_item_slot', function(packet) { // TODO: this really should be emitted in mineflayer
-    //packet.slot
-    const slot = self.bot.quickBarSlot;
-    console.log('held_item_slot',slot);
-    self.postMessage({cmd: 'heldItemSlot', slot:slot});
-  });
-
-  self.bot.on('setSlot:0', function(oldItem, newItem) { // slot 0 is player inventory
-    console.log('setSlot',oldItem,newItem);
-    if (!oldItem && !newItem) return; // TODO: why does mineflayer send this?
-    self.postMessage({cmd: 'setSlot', oldItem:oldItem, newItem:newItem});
-  });
-  // TODO: window items packet? for setting multiple slots
-
-  self.bot._client.on('resource_pack_send', function(packet) { // TODO: mineflayer api
-      self.postMessage({cmd: 'resourcePack', url:packet.url, hash:packet.hash});
-  });
-
-  // if we exist (the webworker), socket is connected
-  self.bot._client.emit('connect');
-
 
   // handlers called for main thread
   self.chat = function(event) {
@@ -305,6 +216,100 @@ module.exports = function(self) {
     for (let key in event) {
       self[key] = event[key];
     }
+
+    // Now that the main thread has gave us the necessary data (username, ...), initialize the bot
+
+    self.bot = mineflayer.createBot({
+      username: self.username,
+      stream: self.duplexStream,
+      noPacketFramer: true
+    });
+
+    console.log('mf-worker bot',self.bot);
+
+    self.bot.on('game', function() {
+      console.log('mf-worker spawn position: '+JSON.stringify(self.bot.spawnPoint));
+      self.postMessage({cmd: 'spawn', spawnPoint: self.bot.spawnPoint});
+    });
+
+    self.bot.on('kicked', function(reason) {
+      self.postMessage({cmd: 'kicked', reason: reason});
+    });
+
+    self.bot.on('message', function(message) {
+      //self.console.logNode(tellraw2dom(message.json)); // TODO: send back to parent
+      console.log('mf-worker chat message', message);
+      self.postMessage({cmd: 'chat', message: message});
+    });
+
+    self.bot.on('error', function(err) {
+      console.log('WebSocket error', err);
+      self.postMessage({cmd: 'error', error: err});
+    });
+
+    self.bot.on('close', function() {
+      console.log('WebSocket closed');
+      self.postMessage({cmd: 'close'});
+    });
+
+    self.bot.on('chunkColumnLoad', function(point) {
+      self.addColumn(point);
+    });
+
+    let pos = [0,0,0];
+    self.bot.on('blockUpdate', function(oldBlock, newBlock) {
+      console.log('blockUpdate', oldBlock, newBlock);
+      const position = newBlock.position;
+      pos[0] = position.x;
+      pos[1] = position.y;
+      pos[2] = position.z;
+      const val = self.translateBlockID((newBlock.type << 4) | newBlock.metadata);
+      self.postMessage({cmd: 'setBlock', position: pos, value: val});
+      //self.game.setBlock(pos, val);
+    });
+    // TODO: also handle mass block update (event? would like to optimize multi_block_change, but..)
+
+    self.bot.on('blockBreakProgressObserved', function(block, destroyStage) {
+      self.postMessage({cmd: 'blockBreakProgressObserved', position:[block.position.x, block.position.y, block.position.z], destroyStage: destroyStage});
+    });
+    self.bot.on('blockBreakProgressEnd', function(block) {
+      self.postMessage({cmd: 'blockBreakProgressEnd', position:[block.position.x, block.position.y, block.position.z]});
+    });
+
+
+    self.bot.on('move', function() { // TODO: also support entityMoved, other entities, players, mobs
+      // player move
+      self.postMessage({cmd: 'move', position:[self.bot.entity.position.x, self.bot.entity.position.y, self.bot.entity.position.z]});
+    });
+
+    self.bot.on('soundEffectHeard', function(soundName, position, volume, pitch) {
+      //console.log('soundEffectHeard',arguments);
+      // TODO: event.x,y,z(location?), volume, pitch - 3D sound https://github.com/deathcap/voxel-sfx/issues/3 Positional audio? (voxel-audio)
+      self.postMessage({cmd: 'sound', soundName:soundName});
+    });
+
+    self.bot._client.on('held_item_slot', function(packet) { // TODO: this really should be emitted in mineflayer
+      //packet.slot
+      const slot = self.bot.quickBarSlot;
+      console.log('held_item_slot',slot);
+      self.postMessage({cmd: 'heldItemSlot', slot:slot});
+    });
+
+    self.bot.on('setSlot:0', function(oldItem, newItem) { // slot 0 is player inventory
+      console.log('setSlot',oldItem,newItem);
+      if (!oldItem && !newItem) return; // TODO: why does mineflayer send this?
+      self.postMessage({cmd: 'setSlot', oldItem:oldItem, newItem:newItem});
+    });
+    // TODO: window items packet? for setting multiple slots
+
+    self.bot._client.on('resource_pack_send', function(packet) { // TODO: mineflayer api
+        self.postMessage({cmd: 'resourcePack', url:packet.url, hash:packet.hash});
+    });
+
+    // if we exist (the webworker), socket is connected
+    self.bot._client.emit('connect');
+
+
   };
 
   // http://wiki.vg/Protocol#Player_Digging
