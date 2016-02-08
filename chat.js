@@ -1,5 +1,7 @@
 'use strict';
 
+const tellraw2dom = require('tellraw2dom');
+
 module.exports = (clientmc) => {
   clientmc.chat = (event) => {
     clientmc.console.logNode(tellraw2dom(event.message.json));

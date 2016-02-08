@@ -3,7 +3,6 @@
 const mineflayer = require('wsmc/mineflayer-stream');
 const websocket_stream = require('websocket-stream');
 const ever = require('ever');
-const tellraw2dom = require('tellraw2dom');
 const webworkify = require('webworkify');
 const workerstream = require('workerstream');
 const vec3Object = require('vec3'); // note: object type used by mineflayer, NOT gl-vec3 which is just a typed array :(
