@@ -1,8 +1,8 @@
 'use strict';
 
-var createEngine = require('voxel-engine-stackgl');
+const createEngine = require('voxel-engine-stackgl');
 
-var main = function() {
+const main = function() {
   console.log('starting up');
   createEngine({pluginLoaders: {
     'voxel-clientmc': require('../'),

@@ -1,15 +1,15 @@
 'use strict';
 
-var zlib = require('zlib');
-var ever = require('ever');
+const zlib = require('zlib');
+const ever = require('ever');
 
 module.exports = function() {
   ever(self).on('message', function(ev) {
-    var compressedArrayBuffer = ev.data.compressed;
-    var compressedArrayView = new Uint8Array(compressedArrayBuffer, ev.data.byteOffset, ev.data.byteLength);
-    var compressedBuffer = new Buffer(compressedArrayView);
+    const compressedArrayBuffer = ev.data.compressed;
+    const compressedArrayView = new Uint8Array(compressedArrayBuffer, ev.data.byteOffset, ev.data.byteLength);
+    const compressedBuffer = new Buffer(compressedArrayView);
 
-    var id = ev.data.id;
+    const id = ev.data.id;
     console.log('worker decomp start '+id+' len'+compressedBuffer.length);
 
     zlib.inflate(compressedBuffer, function(err, decompressed) {
@@ -23,7 +23,7 @@ module.exports = function() {
         return;
       }
 
-      var decompressedBuffer = decompressed.buffer;
+      const decompressedBuffer = decompressed.buffer;
       self.postMessage({
           id:id,
           decompressed:decompressedBuffer},

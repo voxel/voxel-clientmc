@@ -1,16 +1,16 @@
 'use strict';
 
-var ndarray = require('ndarray');
-var mineflayer = require('wsmc/mineflayer-stream');
-var websocket_stream = require('websocket-stream');
-var ever = require('ever');
-var tellraw2dom = require('tellraw2dom');
-var webworkify = require('webworkify');
-var workerstream = require('workerstream');
-var vec3Object = require('vec3'); // note: object type used by mineflayer, NOT gl-vec3 which is just a typed array :(
-var typedArrayToBuffer = require('typedarray-to-buffer');
-var ItemPile = require('itempile');
-var mcData = require('./mcdata');
+const ndarray = require('ndarray');
+const mineflayer = require('wsmc/mineflayer-stream');
+const websocket_stream = require('websocket-stream');
+const ever = require('ever');
+const tellraw2dom = require('tellraw2dom');
+const webworkify = require('webworkify');
+const workerstream = require('workerstream');
+const vec3Object = require('vec3'); // note: object type used by mineflayer, NOT gl-vec3 which is just a typed array :(
+const typedArrayToBuffer = require('typedarray-to-buffer');
+const ItemPile = require('itempile');
+const mcData = require('./mcdata');
 
 module.exports = function(game, opts) {
   return new ClientMC(game, opts);
@@ -105,13 +105,13 @@ ClientMC.prototype.setBlock = function(event) {
 ClientMC.prototype.chunks = function(event) {
   this.game.plugins.disable('voxel-flatland');
 
-  for (var key in event.chunks) {
-    var chunk = event.chunks[key];
+  for (let key in event.chunks) {
+    const chunk = event.chunks[key];
 
     //console.log('showChunk',key);
 
     // sending ndarray over postMessage loses prototype (cloning algorithm); reconstitute it TODO: optimize
-    var realChunk = ndarray(chunk.data,
+    const realChunk = ndarray(chunk.data,
         [chunk.shape[0], chunk.shape[1], chunk.shape[2]],
         [chunk.stride[0], chunk.stride[1], chunk.stride[2]],
         chunk.offset);
@@ -125,7 +125,7 @@ ClientMC.prototype.chunks = function(event) {
 };
 
 ClientMC.prototype.blockBreakProgressObserved = function(event) {
-  var texture = 'destroy_stage_' + event.destroyStage;
+  const texture = 'destroy_stage_' + event.destroyStage;
 
   this.blockBreakProgress(event.position, texture);
 };
@@ -137,7 +137,7 @@ ClientMC.prototype.blockBreakProgressEnd = function(event) {
 
 ClientMC.prototype.blockBreakProgress = function(position, texture) {
   // MC's break animations don't include the block face, so include them all
-  var normals = [
+  const normals = [
     [1,0,0],
     [-1,0,0],
     [0,1,0],
@@ -145,8 +145,8 @@ ClientMC.prototype.blockBreakProgress = function(position, texture) {
     [0,0,1],
     [0,0,-1]];
 
-  for (var i = 0; i < normals.length; ++i) {
-    var normal = normals[i];
+  for (let i = 0; i < normals.length; ++i) {
+    const normal = normals[i];
     if (texture) {
       this.decalsPlugin.change({position: position, normal: normal, texture: texture});
     } else {
@@ -166,7 +166,7 @@ ClientMC.prototype.move = function(event) {
 ClientMC.prototype.sound = function(event) {
   //console.log('sound',event);
   if (this.sfxPlugin) {
-    var path = event.soundName.replace('.', '/');
+    const path = event.soundName.replace('.', '/');
     // TODO: https://github.com/deathcap/artpacks/issues/14 Randomized sound effect lookup
     // for now, try either unnumbered or first effect variant
     this.sfxPlugin.play(path);
@@ -194,19 +194,19 @@ ClientMC.prototype.setSlot = function(event) {
   console.log('setSlot',event);
   if (!this.carryPlugin) return;
 
-  var mcSlot = 0;
+  let mcSlot = 0;
   if (event.newItem) mcSlot = event.newItem.slot; // either may be null
   else if (event.oldItem) mcSlot = event.oldItem.slot;
 
   // http://wiki.vg/Protocol#Set_Slot
-  var ourSlot;
+  let ourSlot;
   if (mcSlot >= 9) {
     // stored player inventory slots or hotbar
-    var slotIndex = mcSlot - 9;
-    var mcWidth = 9;
-    var mcHeight = 4;
-    var slotCol = slotIndex % mcWidth;
-    var slotRow = Math.floor(slotIndex / mcWidth);
+    const slotIndex = mcSlot - 9;
+    const mcWidth = 9;
+    const mcHeight = 4;
+    const slotCol = slotIndex % mcWidth;
+    let slotRow = Math.floor(slotIndex / mcWidth);
 
     if (slotRow === 3) {
       // our hotbar slots are at top, theirs at bottom TODO: change?
@@ -233,10 +233,10 @@ ClientMC.prototype.setSlot = function(event) {
     throw new Error('unrecognized mc inventory slot:'+event);
   }
 
-  var pile = null;
+  let pile = null;
   if (event.newItem) {
-    var mcName = event.newItem.name;
-    var count = event.newItem.count;
+    const mcName = event.newItem.name;
+    const count = event.newItem.count;
 
     pile = this._newItemPile(mcName, count);
   }
@@ -252,7 +252,7 @@ ClientMC.prototype.heldItemSlot = function(event) {
 
 ClientMC.prototype.resourcePack = function(event) {
   this.console.log('Server offered resource pack. Download then drag and drop in browser to install:');
-  var link = document.createElement('a');
+  const link = document.createElement('a');
   link.href = event.url;
   link.title = event.hash;
   link.textContent = event.url;
@@ -274,8 +274,8 @@ ClientMC.prototype.connectServer = function() {
   //this.game.plugins.get('voxel-player').moveTo -251, 81, -309
 
   // login credential
-  var username;
-  var hash = document.location.hash;
+  let username;
+  const hash = document.location.hash;
   if (hash.length < 2) {
     // try anonymous auth
     username = 'mcwebchatuserX';
@@ -284,91 +284,89 @@ ClientMC.prototype.connectServer = function() {
   }
 
   this.websocketStream = websocket_stream(this.opts.url);
-  var self = this;
-  this.websocketStream.on('connect', function() {
+  this.websocketStream.on('connect', () => {
     console.log('websocketStream connected, launching worker');
 
-    self.mfworker = webworkify(require('./mf-worker.js'));
-    self.mfworkerStream = workerstream(self.mfworker);
+    this.mfworker = webworkify(require('./mf-worker.js'));
+    this.mfworkerStream = workerstream(this.mfworker);
 
     // pass some useful data to the worker
-    self.mfworkerStream.write({cmd: 'setVariables',
-      translateBlockIDs: self.translateBlockIDs,
-      reverseBlockIDs: self.reverseBlockIDs,
-      defaultBlockID: self.defaultBlockID,
-      chunkSize: self.game.chunkSize,
-      chunkPad: self.game.chunkPad,
-      chunkPadHalf: self.game.voxels.chunkPadHalf,
-      chunkMask: self.game.voxels.chunkMask,
-      chunkBits: self.game.voxels.chunkBits,
-      arrayTypeSize: self.game.arrayType.BYTES_PER_ELEMENT
+    this.mfworkerStream.write({cmd: 'setVariables',
+      translateBlockIDs: this.translateBlockIDs,
+      reverseBlockIDs: this.reverseBlockIDs,
+      defaultBlockID: this.defaultBlockID,
+      chunkSize: this.game.chunkSize,
+      chunkPad: this.game.chunkPad,
+      chunkPadHalf: this.game.voxels.chunkPadHalf,
+      chunkMask: this.game.voxels.chunkMask,
+      chunkBits: this.game.voxels.chunkBits,
+      arrayTypeSize: this.game.arrayType.BYTES_PER_ELEMENT
     });
 
     // handle outgoing mfworker data and commands
-    self.mfworkerStream.on('data', function(event) {
+    this.mfworkerStream.on('data', (event) => {
       //console.log('mfworkerStream event',event);
-      var cmd = event.cmd;
-      var f = self[cmd];
+      const cmd = event.cmd;
+      const f = this[cmd];
       if (!f) {
         console.log('Unhandled mfworker cmd',cmd,event);
         return;
       }
 
-      // call method on ourself with arguments
-      f.call(self, event);
+      // call method on ourthis with arguments
+      f.call(this, event);
     });
 
     // pipe incoming wsmc data to mfworker
-    self.websocketStream.pipe(self.mfworkerStream);
+    this.websocketStream.pipe(this.mfworkerStream);
   });
 
-  var self = this;
-  if (this.console) this.console.widget.on('input', this.onConsoleInput = function(text) {
-    self.mfworkerStream.write({cmd: 'chat', text: text});
-    //self.bot.chat(text); // TODO: call in mfworker
+  if (this.console) this.console.widget.on('input', this.onConsoleInput = (text) => {
+    this.mfworkerStream.write({cmd: 'chat', text: text});
+    //this.bot.chat(text); // TODO: call in mfworker
   });
 
   //this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
 
   //this.voxelChunks = {}; // TODO: use this?
 
-  var position = [0,0,0];
-  this.game.on('tick', function(dt) { // TODO: remove event on disable
-    position[0] = self.game.controls.target().avatar.position.x;
-    position[1] = self.game.controls.target().avatar.position.y;
-    position[2] = self.game.controls.target().avatar.position.z;
-    self.mfworkerStream.write({cmd: 'move', position: position});
+  let position = [0,0,0];
+  this.game.on('tick', (dt) => { // TODO: remove event on disable
+    position[0] = this.game.controls.target().avatar.position.x;
+    position[1] = this.game.controls.target().avatar.position.y;
+    position[2] = this.game.controls.target().avatar.position.z;
+    this.mfworkerStream.write({cmd: 'move', position: position});
   });
 
   // block events
-  this.reachPlugin.on('start mining', function(target) { // TODO: remove events on disable
+  this.reachPlugin.on('start mining', (target) => { // TODO: remove events on disable
     console.log('start mining',target);
     if (!target) return; // no target (air)
-    self.mfworkerStream.write({cmd: 'digStart', position:target.voxel, normal:target.normal});
+    this.mfworkerStream.write({cmd: 'digStart', position:target.voxel, normal:target.normal});
   });
-  this.reachPlugin.on('stop mining', function(target) {
-    if (!target) target = self.reachPlugin.specifyTarget(); // TODO: why is this sometimes null? voxel-reach bug?
+  this.reachPlugin.on('stop mining', (target) => {
+    if (!target) target = this.reachPlugin.specifyTarget(); // TODO: why is this sometimes null? voxel-reach bug?
     console.log('stop mining',target);
-    self.mfworkerStream.write({cmd: 'digStop', position:target.voxel, normal:target.normal});
+    this.mfworkerStream.write({cmd: 'digStop', position:target.voxel, normal:target.normal});
   });
 
-  this.usePlugin.on('usedBlock', function(target, held, newHeld) {
+  this.usePlugin.on('usedBlock', (target, held, newHeld) => {
     console.log('usedBlock',target,held,newHeld);
 
     if (!target) return;
 
-    //var value = self.registry.getBlockIndex(held.item);
+    //const value = this.registry.getBlockIndex(held.item);
 
-    self.mfworkerStream.write({cmd: 'placeBlock', position:target.voxel, value:target.value});
+    this.mfworkerStream.write({cmd: 'placeBlock', position:target.voxel, value:target.value});
   });
 
   if (this.hotbar) {
-    this.hotbar.on('selectionChanging', function(event) {
-      self.mfworkerStream.write({cmd: 'setHeldItem', slot:event.newIndex});
+    this.hotbar.on('selectionChanging', (event) => {
+      this.mfworkerStream.write({cmd: 'setHeldItem', slot:event.newIndex});
     });
   }
 
-  var maxId = 4096; // 2^12 TODO: 2^16? for extended block IDs (plus metadata)
+  const maxId = 4096; // 2^12 TODO: 2^16? for extended block IDs (plus metadata)
 
   // array MC block ID -> our block ID
   // packs 4-bit metadata in LSBs (MC block ID = 12-bits, meta = 4-bits, total 16-bits -> ours 16 bit)
@@ -376,22 +374,22 @@ ClientMC.prototype.connectServer = function() {
   this.reverseBlockIDs = {};
   this.defaultBlockID = this.registry.getBlockIndex(this.opts.mcBlocks.default);
 
-  for (var mcID in this.opts.mcBlocks) {
-    var mcBlockID;
-    var mcMetaID;
+  for (let mcID in this.opts.mcBlocks) {
+    let mcBlockID;
+    let mcMetaID;
     if (mcID.indexOf(':') !== -1) {
-      var a = mcID.split(':');
+      let a = mcID.split(':');
       mcBlockID = parseInt(a[0], 10);
       mcMetaID = parseInt(a[1], 10);
     } else {
       mcBlockID = parseInt(mcID, 10);
       mcMetaID = 0;
     }
-    var ourBlockName = this.opts.mcBlocks[mcID];
-    var ourBlockID = this.registry.getBlockIndex(ourBlockName);
+    const ourBlockName = this.opts.mcBlocks[mcID];
+    const ourBlockID = this.registry.getBlockIndex(ourBlockName);
     if (ourBlockID === undefined)
       throw new Error('voxel-clientmc unrecognized block name: '+ourBlockName+' for MC '+mcID);
-    var mcPackedID = (mcBlockID << 4) | mcMetaID;
+    const mcPackedID = (mcBlockID << 4) | mcMetaID;
     this.translateBlockIDs[mcPackedID] = ourBlockID;
     this.reverseBlockIDs[ourBlockID] = mcPackedID;
   }
@@ -417,20 +415,18 @@ ClientMC.prototype.nativeConsoleLog = function(args) {
 
 // log to browser and to user console if available
 ClientMC.prototype.log = function(msg) {
-  var rest = []; //arguments.slice(1); // TODO
+  const rest = []; //arguments.slice(1); // TODO
   this.nativeConsoleLog(['[voxel-clientmc] ' + msg].concat(rest));  // as separate parameters to allow object expansion
   if (this.console) this.console.log(msg + ' ' + rest.join(' '));
 };
 
 /* TODO: integrate with mineflayer
 ClientMC.prototype.handlePacket = function(name, payload) {
-  var self = this;
-
   if (name === 'position') {
     // TODO, yaw, pitch. to convert see http://wiki.vg/Protocol#Player_Position_And_Look
     this.log('player pos and look', payload);
-    var ourY = payload.y - 1.62; // empirical  TODO: not playerHeight?
-    var pos = this.game.plugins.get('game-shell-fps-camera').camera.position;
+    let ourY = payload.y - 1.62; // empirical  TODO: not playerHeight?
+    let pos = this.game.plugins.get('game-shell-fps-camera').camera.position;
     pos[0] = payload.x;
     pos[1] = ourY;
     pos[2] = payload.z;
@@ -442,7 +438,7 @@ ClientMC.prototype.handlePacket = function(name, payload) {
 
 /*
 ClientMC.prototype.missingChunk = function(pos) {
-  var chunk = this.voxelChunks[pos.join('|')];
+  const chunk = this.voxelChunks[pos.join('|')];
   if (chunk === undefined) return;
 
   this.game.showChunk(chunk);
