@@ -8,12 +8,13 @@ const Writable = require('stream').Writable;
 const through = require('through');
 const ndarray = require('ndarray');
 const vec3Object = require('vec3'); // note: object type used by mineflayer, NOT gl-vec3 which is just a typed array :(
+const isBuffer = require('is-buffer');
 
 module.exports = function(self) {
   console.log('mf-worker initializing',self);
 
   self.readStream = ParentStream().pipe(toBufferStream).pipe(through(function write(event) {
-    if (Buffer.isBuffer(event)) {
+    if (isBuffer(event)) {
       // buffer data passes through to readStream -> duplexStream for bot
       this.queue(event);
     } else {
