@@ -1,6 +1,5 @@
 'use strict';
 
-const ndarray = require('ndarray');
 const mineflayer = require('wsmc/mineflayer-stream');
 const websocket_stream = require('websocket-stream');
 const ever = require('ever');
@@ -9,7 +8,6 @@ const webworkify = require('webworkify');
 const workerstream = require('workerstream');
 const vec3Object = require('vec3'); // note: object type used by mineflayer, NOT gl-vec3 which is just a typed array :(
 const typedArrayToBuffer = require('typedarray-to-buffer');
-const ItemPile = require('itempile');
 const mcData = require('./mcdata');
 
 module.exports = function(game, opts) {
@@ -62,30 +60,22 @@ function ClientMC(game, opts) {
   // http://minecraft.gamepedia.com/Data_values#Block_IDs http://minecraft-ids.grahamedgecombe.com/
   // TODO: get translation table from network protocol? I think Forge supports custom blocks with the map sent over the network?
   opts.mcBlocks = opts.mcBlocks || mcData.mcBlockID2Voxel;
-    
+
+  require('./position.js')(this);
+  require('./kick.js')(this);
+  require('./chunks.js')(this);
+  require('./block_break_animation.js')(this);
+  require('./sound.js')(this);
+  require('./chat.js')(this);
+  require('./inventory.js')(this);
+  require('./resource_pack.js')(this);
+
   this.enable();
 }
 
 // handlers called from mfworker
 ClientMC.prototype.packet = function(event) {
   this.websocketStream.write(typedArrayToBuffer(event.data));
-};
-
-ClientMC.prototype.chat = function(event) {
-  this.console.logNode(tellraw2dom(event.message.json));
-};
-
-ClientMC.prototype.spawn = function(event) {
-  this.console.log('Spawn position: '+JSON.stringify(event.spawnPoint));
-  this.game.controls.target().avatar.position.x = event.spawnPoint.x;
-  this.game.controls.target().avatar.position.y = event.spawnPoint.y;
-  this.game.controls.target().avatar.position.z = event.spawnPoint.z;
-
-  this.commands.isConnectedToServer = true;
-};
-
-ClientMC.prototype.kicked = function(event) {
-  window.alert('Disconnected from server: '+event.reason); // TODO: console, also for chat
 };
 
 ClientMC.prototype.error = function(event) {
@@ -98,167 +88,6 @@ ClientMC.prototype.close = function(event) {
   this.game.plugins.disable('voxel-clientmc');
 };
 
-ClientMC.prototype.setBlock = function(event) {
-  this.game.setBlock(event.position, event.value);
-};
-
-ClientMC.prototype.chunks = function(event) {
-  this.game.plugins.disable('voxel-flatland');
-
-  for (let key in event.chunks) {
-    const chunk = event.chunks[key];
-
-    //console.log('showChunk',key);
-
-    // sending ndarray over postMessage loses prototype (cloning algorithm); reconstitute it TODO: optimize
-    const realChunk = ndarray(chunk.data,
-        [chunk.shape[0], chunk.shape[1], chunk.shape[2]],
-        [chunk.stride[0], chunk.stride[1], chunk.stride[2]],
-        chunk.offset);
-    realChunk.position = chunk.position;
-
-    console.log('Saving chunk',key);
-    this.game.voxels.chunks[key] = realChunk;
-    this.game.addChunkToNextUpdate(realChunk);
-    //this.game.showChunk(realChunk);
-  };
-};
-
-ClientMC.prototype.blockBreakProgressObserved = function(event) {
-  const texture = 'destroy_stage_' + event.destroyStage;
-
-  this.blockBreakProgress(event.position, texture);
-};
-
-ClientMC.prototype.blockBreakProgressEnd = function(event) {
-  this.blockBreakProgress(event.position, null);
-};
-
-
-ClientMC.prototype.blockBreakProgress = function(position, texture) {
-  // MC's break animations don't include the block face, so include them all
-  const normals = [
-    [1,0,0],
-    [-1,0,0],
-    [0,1,0],
-    [0,-1,0],
-    [0,0,1],
-    [0,0,-1]];
-
-  for (let i = 0; i < normals.length; ++i) {
-    const normal = normals[i];
-    if (texture) {
-      this.decalsPlugin.change({position: position, normal: normal, texture: texture});
-    } else {
-      this.decalsPlugin.remove({position: position, normal: normal});
-    }
-  }
-
-  this.decalsPlugin.update();
-};
-
-ClientMC.prototype.move = function(event) {
-  this.game.controls.target().avatar.position.x = event.position[0];
-  this.game.controls.target().avatar.position.y = event.position[1];
-  this.game.controls.target().avatar.position.z = event.position[2];
-};
-
-ClientMC.prototype.sound = function(event) {
-  //console.log('sound',event);
-  if (this.sfxPlugin) {
-    const path = event.soundName.replace('.', '/');
-    // TODO: https://github.com/deathcap/artpacks/issues/14 Randomized sound effect lookup
-    // for now, try either unnumbered or first effect variant
-    this.sfxPlugin.play(path);
-    this.sfxPlugin.play(path + '1');
-  }
-};
-
-ClientMC.prototype._newItemPile = function(mcName, count, tags) {
-  if (count === undefined) count = 1;
-  if (tags) throw new Error('_newItemPile tags not yet supported'); // TODO
-
-  let ourName;
-
-  ourName = mcData.mcBlockName2Voxel[mcName];
-  if (!ourName) ourName = mcData.mcItemName2Voxel[mcName];
-  if (!ourName) {
-    console.warn(`Unrecognized/unsupported MC item: ${mcName}`);
-    ourName = 'missing';
-  }
-
-  return new ItemPile(ourName, count);
-}
-
-ClientMC.prototype.setSlot = function(event) {
-  console.log('setSlot',event);
-  if (!this.carryPlugin) return;
-
-  let mcSlot = 0;
-  if (event.newItem) mcSlot = event.newItem.slot; // either may be null
-  else if (event.oldItem) mcSlot = event.oldItem.slot;
-
-  // http://wiki.vg/Protocol#Set_Slot
-  let ourSlot;
-  if (mcSlot >= 9) {
-    // stored player inventory slots or hotbar
-    const slotIndex = mcSlot - 9;
-    const mcWidth = 9;
-    const mcHeight = 4;
-    const slotCol = slotIndex % mcWidth;
-    let slotRow = Math.floor(slotIndex / mcWidth);
-
-    if (slotRow === 3) {
-      // our hotbar slots are at top, theirs at bottom TODO: change?
-      slotRow = 0;
-    } else {
-      slotRow += (this.carryPlugin.inventory.height - mcHeight);
-    }
-
-    ourSlot = this.carryPlugin.inventory.width * slotRow + slotCol;
-  } else if (mcSlot < 9) {
-    switch(mcSlot) {
-      case 0: return; // crafting output, can't set TODO: well, maybe?
-      case 1: return; // crafting ingredients
-      case 2: return;
-      case 3: return;
-      case 4: return;
-      // armor slots TODO
-      case 5: ourSlot = 10; break;
-      case 6: ourSlot = 20; break;
-      case 7: ourSlot = 30; break;
-      case 8: ourSlot = 30; break;
-    }
-  } else {
-    throw new Error('unrecognized mc inventory slot:'+event);
-  }
-
-  let pile = null;
-  if (event.newItem) {
-    const mcName = event.newItem.name;
-    const count = event.newItem.count;
-
-    pile = this._newItemPile(mcName, count);
-  }
-
-  this.carryPlugin.inventory.set(ourSlot, pile);
-};
-
-ClientMC.prototype.heldItemSlot = function(event) {
-  if (!this.hotbar) return;
-
-  this.hotbar.setSelectedIndex(event.slot);
-};
-
-ClientMC.prototype.resourcePack = function(event) {
-  this.console.log('Server offered resource pack. Download then drag and drop in browser to install:');
-  const link = document.createElement('a');
-  link.href = event.url;
-  link.title = event.hash;
-  link.textContent = event.url;
-  this.console.logNode(link);
-};
-
 ClientMC.prototype.enable = function() {
   // only begin connecting to server after voxel-engine is initialized,
   // since it shows chunks (game.showChunk) which requires engine initialization,
@@ -266,6 +95,7 @@ ClientMC.prototype.enable = function() {
   this.game.on('engine-init', this.connectServer.bind(this));
 };
 
+// TODO: refactor further
 ClientMC.prototype.connectServer = function() {
   this.log('voxel-clientmc connecting...');
 
@@ -321,6 +151,7 @@ ClientMC.prototype.connectServer = function() {
     this.websocketStream.pipe(this.mfworkerStream);
   });
 
+  // TODO: refactor into chat
   if (this.console) this.console.widget.on('input', this.onConsoleInput = (text) => {
     this.mfworkerStream.write({cmd: 'chat', text: text});
     //this.bot.chat(text); // TODO: call in mfworker
@@ -330,6 +161,7 @@ ClientMC.prototype.connectServer = function() {
 
   //this.voxelChunks = {}; // TODO: use this?
 
+  // TODO: refactor into position
   let position = [0,0,0];
   this.game.on('tick', (dt) => { // TODO: remove event on disable
     position[0] = this.game.controls.target().avatar.position.x;
@@ -338,6 +170,7 @@ ClientMC.prototype.connectServer = function() {
     this.mfworkerStream.write({cmd: 'move', position: position});
   });
 
+  // TODO: refactor
   // block events
   this.reachPlugin.on('start mining', (target) => { // TODO: remove events on disable
     console.log('start mining',target);
@@ -360,12 +193,14 @@ ClientMC.prototype.connectServer = function() {
     this.mfworkerStream.write({cmd: 'placeBlock', position:target.voxel, value:target.value});
   });
 
+  // TODO: refactor into inventory
   if (this.hotbar) {
     this.hotbar.on('selectionChanging', (event) => {
       this.mfworkerStream.write({cmd: 'setHeldItem', slot:event.newIndex});
     });
   }
 
+  // TODO: refactor into chunks
   const maxId = 4096; // 2^12 TODO: 2^16? for extended block IDs (plus metadata)
 
   // array MC block ID -> our block ID
@@ -406,18 +241,6 @@ ClientMC.prototype.disable = function() {
   this.game.plugins.get('voxel-console').widget.removeListener('input', this.onConsoleInput);
   this.ws.end();
   if (this.clearPositionUpdateTimer) this.clearPositionUpdateTimer();
-};
-
-// call the browser console.log() function with arguments as an array
-ClientMC.prototype.nativeConsoleLog = function(args) {
-  Function.prototype.bind.call(console.log, console).apply(console, args); // see http://stackoverflow.com/questions/5538972
-};
-
-// log to browser and to user console if available
-ClientMC.prototype.log = function(msg) {
-  const rest = []; //arguments.slice(1); // TODO
-  this.nativeConsoleLog(['[voxel-clientmc] ' + msg].concat(rest));  // as separate parameters to allow object expansion
-  if (this.console) this.console.log(msg + ' ' + rest.join(' '));
 };
 
 /* TODO: integrate with mineflayer
