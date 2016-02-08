@@ -5,6 +5,7 @@ const webworkify = require('webworkify');
 const workerstream = require('workerstream');
 const typedArrayToBuffer = require('typedarray-to-buffer');
 const mcData = require('./mcdata');
+const EventEmitter = require('events').EventEmitter;
 
 module.exports = function(game, opts) {
   return new ClientMC(game, opts);
@@ -27,9 +28,11 @@ module.exports.pluginInfo = {
 };
 
 
-class ClientMC
+class ClientMC extends EventEmitter
 {
   constructor(game, opts) {
+    super();
+
     this.game = game;
     this.opts = opts;
 
@@ -79,6 +82,8 @@ class ClientMC
     require('./position.js')(this);
     require('./kick.js')(this);
     require('./chunks.js')(this);
+    require('./dig.js')(this);
+    require('./use.js')(this);
     require('./block_break_animation.js')(this);
     require('./sound.js')(this);
     require('./chat.js')(this);
@@ -152,88 +157,7 @@ class ClientMC
       this.websocketStream.pipe(this.mfworkerStream);
     });
 
-    // TODO: refactor into chat
-    if (this.console) this.console.widget.on('input', this.onConsoleInput = (text) => {
-      this.mfworkerStream.write({cmd: 'chat', text: text});
-      //this.bot.chat(text); // TODO: call in mfworker
-    });
-
-    //this.game.voxels.on('missingChunk', this.missingChunk.bind(this));
-
-    //this.voxelChunks = {}; // TODO: use this?
-
-    // TODO: refactor into position
-    let position = [0,0,0];
-    this.game.on('tick', (dt) => { // TODO: remove event on disable
-      position[0] = this.game.controls.target().avatar.position.x;
-      position[1] = this.game.controls.target().avatar.position.y;
-      position[2] = this.game.controls.target().avatar.position.z;
-      this.mfworkerStream.write({cmd: 'move', position: position});
-    });
-
-    // TODO: refactor
-    // block events
-    this.reachPlugin.on('start mining', (target) => { // TODO: remove events on disable
-      console.log('start mining',target);
-      if (!target) return; // no target (air)
-      this.mfworkerStream.write({cmd: 'digStart', position:target.voxel, normal:target.normal});
-    });
-    this.reachPlugin.on('stop mining', (target) => {
-      if (!target) target = this.reachPlugin.specifyTarget(); // TODO: why is this sometimes null? voxel-reach bug?
-      console.log('stop mining',target);
-      this.mfworkerStream.write({cmd: 'digStop', position:target.voxel, normal:target.normal});
-    });
-
-    this.usePlugin.on('usedBlock', (target, held, newHeld) => {
-      console.log('usedBlock',target,held,newHeld);
-
-      if (!target) return;
-
-      //const value = this.registry.getBlockIndex(held.item);
-
-      this.mfworkerStream.write({cmd: 'placeBlock', position:target.voxel, value:target.value});
-    });
-
-    // TODO: refactor into inventory
-    if (this.hotbar) {
-      this.hotbar.on('selectionChanging', (event) => {
-        this.mfworkerStream.write({cmd: 'setHeldItem', slot:event.newIndex});
-      });
-    }
-
-    // TODO: refactor into chunks
-    const maxId = 4096; // 2^12 TODO: 2^16? for extended block IDs (plus metadata)
-
-    // array MC block ID -> our block ID
-    // packs 4-bit metadata in LSBs (MC block ID = 12-bits, meta = 4-bits, total 16-bits -> ours 16 bit)
-    this.translateBlockIDs = new this.game.arrayType(maxId);
-    this.reverseBlockIDs = {};
-    this.defaultBlockID = this.registry.getBlockIndex(this.opts.mcBlocks.default);
-
-    for (let mcID in this.opts.mcBlocks) {
-      let mcBlockID;
-      let mcMetaID;
-      if (mcID.indexOf(':') !== -1) {
-        let a = mcID.split(':');
-        mcBlockID = parseInt(a[0], 10);
-        mcMetaID = parseInt(a[1], 10);
-      } else {
-        mcBlockID = parseInt(mcID, 10);
-        mcMetaID = 0;
-      }
-      const ourBlockName = this.opts.mcBlocks[mcID];
-      const ourBlockID = this.registry.getBlockIndex(ourBlockName);
-      if (ourBlockID === undefined)
-        throw new Error('voxel-clientmc unrecognized block name: '+ourBlockName+' for MC '+mcID);
-      const mcPackedID = (mcBlockID << 4) | mcMetaID;
-      this.translateBlockIDs[mcPackedID] = ourBlockID;
-      this.reverseBlockIDs[ourBlockID] = mcPackedID;
-    }
-
-    // for chunk conversion - see voxel/chunker.js
-    this.chunkBits = Math.log(this.game.chunkSize) / Math.log(2); // must be power of two
-    this.chunkBits |= 0;
-    this.chunkMask = (1 << this.chunkBits) - 1;
+    this.emit('connectServer');
   }
 
   disable() {
@@ -243,30 +167,4 @@ class ClientMC
     this.ws.end();
     if (this.clearPositionUpdateTimer) this.clearPositionUpdateTimer();
   }
-
-  /* TODO: integrate with mineflayer
-  handlePacket(name, payload) {
-    if (name === 'position') {
-      // TODO, yaw, pitch. to convert see http://wiki.vg/Protocol#Player_Position_And_Look
-      this.log('player pos and look', payload);
-      let ourY = payload.y - 1.62; // empirical  TODO: not playerHeight?
-      let pos = this.game.plugins.get('game-shell-fps-camera').camera.position;
-      pos[0] = payload.x;
-      pos[1] = ourY;
-      pos[2] = payload.z;
-
-      // the "apology"
-      this.sendPacket('position', payload);
-    }
-  }
-  */
-
-  /*
-  missingChunk(pos) {
-    const chunk = this.voxelChunks[pos.join('|')];
-    if (chunk === undefined) return;
-
-    this.game.showChunk(chunk);
-  };
-  */
 }

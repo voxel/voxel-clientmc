@@ -18,4 +18,11 @@ module.exports = (clientmc) => {
     clientmc.nativeConsoleLog(['[voxel-clientmc] ' + msg].concat(rest));  // as separate parameters to allow object expansion
     if (clientmc.console) clientmc.console.log(msg + ' ' + rest.join(' '));
   };
+
+  clientmc.on('connectServer', () => {
+    if (clientmc.console) clientmc.console.widget.on('input', this.onConsoleInput = (text) => {
+      clientmc.mfworkerStream.write({cmd: 'chat', text: text});
+    });
+  });
+  // TODO: remove listener on disconnect
 };

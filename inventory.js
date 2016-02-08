@@ -79,4 +79,13 @@ module.exports = (clientmc) => {
 
     clientmc.hotbar.setSelectedIndex(event.slot);
   };
+
+  clientmc.on('connectServer', () => {
+    if (clientmc.hotbar) {
+      clientmc.hotbar.on('selectionChanging', (event) => {
+        clientmc.mfworkerStream.write({cmd: 'setHeldItem', slot:event.newIndex});
+      });
+    }
+  });
+  // TODO: remove handler on disconnect
 };
