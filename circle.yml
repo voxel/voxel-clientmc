@@ -9,7 +9,7 @@ checkout:
     - git submodule sync
     - git submodule update --init
     # package voxel-clientmc
-    - browserify app/app.js > app/wsmc/src/main/resources/www/bundle.js
+    - ./app/node_modules/.bin/browserify app/app.js > app/wsmc/src/main/resources/www/bundle.js
     # build wsmc/Java
     - (cd app/wsmc; mvn package)
 
