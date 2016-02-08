@@ -180,11 +180,12 @@ ClientMC.prototype._newItemPile = function(mcName, count, tags) {
 
   let ourName;
 
-  if (mcData.mcBlockName2Voxel[mcName]) {
-    ourName = mcData.mcBlockName2Voxel[mcName];
-  } else {
-    ourName = mcName; // TODO: translate items too
-  } // TODO: substitute unrecognized
+  ourName = mcData.mcBlockName2Voxel[mcName];
+  if (!ourName) ourName = mcData.mcItemName2Voxel[mcName];
+  if (!ourName) {
+    console.warn(`Unrecognized/unsupported MC item: ${mcName}`);
+    ourName = 'missing';
+  }
 
   return new ItemPile(ourName, count);
 }

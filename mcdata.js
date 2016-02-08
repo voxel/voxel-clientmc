@@ -206,9 +206,9 @@ const inertItemProps = {
   //apple: {itemTexture: 'items/apple', displayName: 'Apple'}, // voxel-food
   armor_stand: {itemTexture: 'items/wooden_armorstand', displayName: 'Armor Stand'},
   arrow: {itemTexture: 'items/arrow', displayName: 'Arrow'},
-  baked_potato: {itemTexture: 'items/potato_baked', displayName: 'Baked Potato'},
+  //baked_potato: {itemTexture: 'items/potato_baked', displayName: 'Baked Potato'},
   bed: {itemTexture: 'items/bed', displayName: 'Bed'},
-  beef: {itemTexture: 'items/beef_raw', displayName: 'Raw Beef'},
+  //beef: {itemTexture: 'items/beef_raw', displayName: 'Raw Beef'},
   birch_door: {itemTexture: 'items/door_birch', displayName: 'Birch Door'},
   blaze_powder: {itemTexture: 'items/blaze_powder', displayName: 'Blaze Powder'},
   blaze_rod: {itemTexture: 'items/blaze_rod', displayName: 'Blaze Rod'},
@@ -230,13 +230,13 @@ const inertItemProps = {
   chainmail_helmet: {itemTexture: 'items/chainmail_helmet', displayName: 'Chain Helmet'},
   chainmail_leggings: {itemTexture: 'items/chainmail_leggings', displayName: 'Chain Leggings'},
   chest_minecart: {itemTexture: 'items/minecart_chest', displayName: 'Minecart with Chest'},
-  chicken: {itemTexture: 'items/chicken_raw', displayName: 'Raw Chicken'},
+  //chicken: {itemTexture: 'items/chicken_raw', displayName: 'Raw Chicken'},
   clay_ball: {itemTexture: 'items/clay_ball', displayName: 'Clay'},
   coal: {itemTexture: 'items/coal', displayName: 'Coal'},
   command_block_minecart: {itemTexture: 'items/minecart_command_block', displayName: 'Minecart with Command Block'},
   comparator: {itemTexture: 'items/comparator', displayName: 'Redstone Comparator'},
-  cooked_beef: {itemTexture: 'items/beef_cooked', displayName: 'Steak'},
-  cooked_chicken: {itemTexture: 'items/chicken_cooked', displayName: 'Cooked Chicken'},
+  //cooked_beef: {itemTexture: 'items/beef_cooked', displayName: 'Steak'},
+  //cooked_chicken: {itemTexture: 'items/chicken_cooked', displayName: 'Cooked Chicken'},
   cooked_mutton: {itemTexture: 'items/mutton_cooked', displayName: 'Cooked Mutton'},
   cooked_porkchop: {itemTexture: 'items/porkchop_cooked', displayName: 'Cooked Porkchop'},
   cooked_rabbit: {itemTexture: 'items/rabbit_cooked', displayName: 'Cooked Rabbit'},
@@ -275,10 +275,10 @@ const inertItemProps = {
   glowstone_dust: {itemTexture: 'items/glowstone_dust', displayName: 'Glowstone Dust'},
   gold_ingot: {itemTexture: 'items/gold_ingot', displayName: 'Gold Ingot'},
   gold_nugget: {itemTexture: 'items/gold_nugget', displayName: 'Gold Nugget'},
-  golden_apple: {itemTexture: 'items/apple_golden', displayName: 'Golden Apple'},
+  //golden_apple: {itemTexture: 'items/apple_golden', displayName: 'Golden Apple'},
   golden_axe: {itemTexture: 'items/gold_axe', displayName: 'Golden Axe'},
   golden_boots: {itemTexture: 'items/gold_boots', displayName: 'Golden Boots'},
-  golden_carrot: {itemTexture: 'items/carrot_golden', displayName: 'Golden Carrot'},
+  //golden_carrot: {itemTexture: 'items/carrot_golden', displayName: 'Golden Carrot'},
   golden_chestplate: {itemTexture: 'items/gold_chestplate', displayName: 'Golden Chestplate'},
   golden_helmet: {itemTexture: 'items/gold_helmet', displayName: 'Golden Helmet'},
   golden_hoe: {itemTexture: 'items/gold_hoe', displayName: 'Golden Hoe'},
@@ -416,11 +416,38 @@ function readItemTextures() {
 readItemTextures();
 */
 
+const mcItemName2Voxel = {
+  // voxel-food
+  apple: 'apple',
+  baked_potato: 'potatoBaked',
+  beef: 'beefRaw',
+  bread: 'bread',
+  cake: 'cake',
+  carrot: 'carrot',
+  golden_apple: 'appleGolden',
+  golden_carrot: 'carrotGolden',
+  chicken: 'chickenRaw',
+  cooked_beef: 'beefCooked',
+  cooked_chicken: 'chickenCooked',
+  cookie: 'cookie',
+  melon: 'melon',
+  pumpkin_pie: 'pumpkinPie',
+  spider_eye: 'spiderEye',
+  // note: appended with inertItemProps below
+};
+
+Object.keys(inertItemProps).forEach((mcName) => {
+  const ourName = mcName;
+
+  mcItemName2Voxel[mcName] = ourName;
+});
+
 module.exports = {
   mcBlockName2Voxel,
   mcBlockID2Voxel,
   inertBlockProps,
   inertItemProps,
+  mcItemName2Voxel,
 };
 
 
