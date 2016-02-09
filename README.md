@@ -10,7 +10,7 @@ Web-based Minecraft-compatible client using voxel.js, connects to Minecraft serv
 
 Prebuilt integrated builds are available to download from:
 
-* [![Build Status](https://circleci.com/gh/voxel/voxel-clientmc.svg?style=svg)](https://circleci.com/gh/voxel/voxel-clientmc/tree/master) **[CircleCI](https://circleci.com/gh/voxel/voxel-clientmc/tree/master)** - click the latest build then expand "Artifacts" (if it does not show, try logging in with GitHub)
+* [![Build Status](https://circleci.com/gh/voxel/voxel-clientmc.svg?style=svg)](https://circleci.com/gh/voxel/voxel-clientmc/tree/master) **[CircleCI](https://circleci.com/gh/voxel/voxel-clientmc/tree/master)** - click the latest build then expand "Artifacts" (requires logging in with GitHub)
 
 Basic setup steps:
 
@@ -28,7 +28,7 @@ For advanced proxy configuration, see the [wsmc documentation](https://github.co
 
 ## Status
 
-Note: very incomplete, many bugs and missing features. The client is able to observe and interact
+Very incomplete, many bugs and missing features. The client is able to observe and interact
 with the world in a primitive manner, but full survival gameplay is not yet possible.
 
 For details on the current protocol implementation status, see: https://github.com/voxel/voxel-clientmc/issues/23
@@ -37,16 +37,18 @@ For details on the current protocol implementation status, see: https://github.c
 
 The integrated build includes several separate components, pre-packaged together for convenience:
 
-### wsmc (WebSocket/Minecraft proxy)
+### wsmc
 
 In order to allow connecting from a web browser, the Minecraft server is exposed through a WebSocket
-via the [wsmc](https://github.com/deathcap/wsmc) proxy. Integrated builds include the Java version of
+via the wsmc (WebSocket/Mincraft) proxy. Integrated builds include the Java version of
 wsmc, but a Node.js version is also available. wsmc/Java can be ran as a Bukkit plugin, or standalone.
+
+WSMC is developed in a separate repository, [https://github.com/deathcap/wsmc](https://github.com/deathcap/wsmc).
 
 ### voxel-clientmc plugin
 
-The bulk of this project is composed of a [voxel.js plugin](https://github.com/voxel/voxel-plugins),
-"voxel-clientmc", maintained in this repository. This plugin connects to a wsmc proxy using a WebSocket,
+The bulk of this project is composed of a voxel.js plugin,
+"voxel-clientmc", maintained in this repository. This [plugin](https://github.com/voxel/voxel-plugins) connects to a wsmc proxy using a WebSocket,
 via the [mineflayer](https://github.com/PrismarineJS/mineflayer) abstraction layer, and ties it into
 [voxel.js](https://github.com/voxel) for GUI interaction. voxel-clientmc is built from a handful of
 small modules, injected at runtime. You can build your own voxel.js app with this plugin.
