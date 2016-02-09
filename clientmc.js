@@ -79,7 +79,6 @@ class ClientMC extends EventEmitter
       }
     };
 
-    require('./inert_content.js')(this);
     require('./position.js')(this);
     require('./kick.js')(this);
     require('./chunks.js')(this);
