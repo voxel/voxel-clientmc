@@ -12,6 +12,7 @@ checkout:
     - npm install
     - (cd app && npm install)
     - ./app/node_modules/.bin/browserify app/app.js > app/wsmc/src/main/resources/www/bundle.js
+    - cp ./app/index.html app/wsmc/src/main/resources/www/index.html
     # build wsmc/Java with the bundled voxel-clientmc
     - (cd app/wsmc && mvn package)
 
