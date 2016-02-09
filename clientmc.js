@@ -109,6 +109,13 @@ class ClientMC extends EventEmitter
       this.registry.registerItem(name, props);
     });
 
+    window.addEventListener('hashchange', this.onhashchange = (event) => {
+      console.log('Hash changed, reloading: ',event);
+      // Reload the page to allow reconnecting to the server with the new credentials
+      // TODO: only reconnect to server, without refreshing
+      window.location.reload();
+    });
+
     // Begin connecting to server after voxel-engine is initialized,
     // since it shows chunks (game.showChunk) which requires engine initialization,
     // but plugins are "enabled" before the engine fully is
@@ -121,6 +128,9 @@ class ClientMC extends EventEmitter
     this.game.plugins.get('voxel-console').widget.removeListener('input', this.onConsoleInput);
     this.ws.end();
     if (this.clearPositionUpdateTimer) this.clearPositionUpdateTimer();
+
+    window.removeEventListener('hashchange', this.onhashchange);
+
     // TODO: unregister inert items/blocks
   }
 
