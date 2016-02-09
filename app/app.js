@@ -36,8 +36,6 @@ const main = function() {
     'voxel-wool': require('voxel-wool'),
     'voxel-pumpkin': require('voxel-pumpkin'),
     'voxel-blockdata': require('voxel-blockdata'),
-    './inert-blocks': require('./inert-blocks'),
-    './inert-items': require('./inert-items'),
     'voxel-decorative': require('voxel-decorative'),
     'voxel-land': require('voxel-land'),
     'voxel-flatland': require('voxel-flatland'),
@@ -120,8 +118,6 @@ const main = function() {
     'voxel-wool': {},
     'voxel-pumpkin': {},
 
-    './inert-blocks': {}, // misc inanimate opaque solid blocks
-    './inert-items': {},
     'voxel-decorative': {},
     //'voxel-land': {registerBlocks: false},
     'voxel-flatland': {block: 'missing'},

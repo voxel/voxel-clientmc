@@ -93,12 +93,35 @@ class ClientMC extends EventEmitter
     this.enable();
   }
 
-
   enable() {
-    // only begin connecting to server after voxel-engine is initialized,
+    // Register our own blocks and items which aren't provided by other more specialized plugins
+    const inertBlockProps = mcData.inertBlockProps;
+    Object.keys(inertBlockProps).forEach((name) => {
+      const props = inertBlockProps[name];
+
+      this.registry.registerBlock(name, props);
+    });
+
+    const inertItemProps = mcData.inertItemProps;
+    Object.keys(inertItemProps).forEach((name) => {
+      const props = inertItemProps[name];
+
+      this.registry.registerItem(name, props);
+    });
+
+    // Begin connecting to server after voxel-engine is initialized,
     // since it shows chunks (game.showChunk) which requires engine initialization,
     // but plugins are "enabled" before the engine fully is
     this.game.on('engine-init', this.connectServer.bind(this));
+  }
+
+  disable() {
+    this.log('voxel-clientmc disabling');
+    this.game.voxels.removeListener('missingChunk', this.missingChunk);
+    this.game.plugins.get('voxel-console').widget.removeListener('input', this.onConsoleInput);
+    this.ws.end();
+    if (this.clearPositionUpdateTimer) this.clearPositionUpdateTimer();
+    // TODO: unregister inert items/blocks
   }
 
   // TODO: refactor further into modules
@@ -159,13 +182,5 @@ class ClientMC extends EventEmitter
     });
 
     this.emit('connectServer');
-  }
-
-  disable() {
-    this.log('voxel-clientmc disabling');
-    this.game.voxels.removeListener('missingChunk', this.missingChunk);
-    this.game.plugins.get('voxel-console').widget.removeListener('input', this.onConsoleInput);
-    this.ws.end();
-    if (this.clearPositionUpdateTimer) this.clearPositionUpdateTimer();
   }
 }
