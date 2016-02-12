@@ -26,6 +26,20 @@ as long as the server is up. You can also use the `/web` command from the consol
 
 For advanced proxy configuration and more details, see the [wsmc documentation](https://github.com/deathcap/wsmc).
 
+---
+
+Screenshot of step 2, when you first login:
+
+![screenshot](http://i.imgur.com/VDNRn9p.png "Screenshot")
+
+Clicking the per-user link will allow you to open the web client:
+
+![screenshot](http://i.imgur.com/iS0raim.png "Screenshot")
+
+And then you'll be logged out and logged in via the web-based client:
+
+![screenshot](http://i.imgur.com/QkghGE7.png "Screenshot")
+
 ## Status
 
 Very incomplete, many bugs and missing features. The client is able to observe and interact
