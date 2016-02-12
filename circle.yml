@@ -2,7 +2,7 @@ machine:
   node:
     version: 4
   java:
-     version: oraclejdk7
+     version: oraclejdk8
 checkout:
   post:
     # clone the wsmc submodule (see https://circleci.com/docs/configuration)
