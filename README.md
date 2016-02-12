@@ -12,9 +12,9 @@ Prebuilt integrated builds are available to download from:
 
 * [![Build Status](https://circleci.com/gh/voxel/voxel-clientmc.svg?style=svg)](https://circleci.com/gh/voxel/voxel-clientmc/tree/master) **[CircleCI](https://circleci.com/gh/voxel/voxel-clientmc/tree/master)** - click the latest build then expand "Artifacts" (requires logging in with GitHub)
 
-Basic setup steps:
+### Quick start
 
-1. Download the .jar file and place it in the `plugins` folder of your Bukkit-compatible server
+1. Download the .jar file and place it in the `plugins` or `mods` folder of your Bukkit or Sponge server
 
 2. Login to your server using the official Minecraft client
 
@@ -22,9 +22,9 @@ Basic setup steps:
 
 You should now be disconnected in the vanilla client, and logged in from the voxel-clientmc web-based client.
 Once you're logged in, the link you've received in step 3 can be reused to re-login via the web browser
-as long as the server is up.
+as long as the server is up. You can also use the `/web` command from the console or as a user to retrieve this URL.
 
-For advanced proxy configuration, see the [wsmc documentation](https://github.com/deathcap/wsmc).
+For advanced proxy configuration and more details, see the [wsmc documentation](https://github.com/deathcap/wsmc).
 
 ## Status
 
